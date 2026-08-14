@@ -1,0 +1,2277 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap');
+  :root{
+    --verde: #0B3D2E;
+    --verde-escuro: #06261C;
+    --dourado: #C9A24B;
+    --dourado-claro: #E4C878;
+    --creme: #F7F5EF;
+    --carvao: #1E2321;
+    --cinza: #6B7570;
+    --linha: #E1DDD1;
+    --sucesso: #1E7A4C;
+    --sucesso-bg: #EAF5EE;
+    --erro: #B3261E;
+    --erro-bg: #FBEBEA;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--creme);
+    color:var(--carvao);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .hidden{display:none !important;}
+  h1,h2,h3{font-family:'Fraunces', serif; margin:0; letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
+
+  /* Cabeçalho global */
+  .topo{
+    background:var(--verde);
+    color:#fff;
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky; top:0; z-index:20;
+    box-shadow:0 2px 10px rgba(0,0,0,0.12);
+  }
+  .topo .marca{display:flex; align-items:center; gap:10px;}
+  .topo .marca .pastilha{
+    width:34px;height:34px;border-radius:8px;
+    background:linear-gradient(150deg,var(--dourado),var(--dourado-claro));
+    display:flex;align-items:center;justify-content:center;
+    color:var(--verde-escuro); font-weight:700; font-family:'Fraunces',serif; font-size:16px;
+  }
+  .topo .marca-texto{line-height:1.1;}
+  .topo .marca-texto strong{display:block; font-size:15px; font-weight:600;}
+  .topo .marca-texto span{font-size:11px; opacity:0.75; letter-spacing:0.04em; text-transform:uppercase;}
+
+  .cronometro{
+    font-family:'IBM Plex Mono', monospace;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.18);
+    padding:8px 14px;
+    border-radius:10px;
+    font-size:17px;
+    font-weight:500;
+    display:flex; align-items:center; gap:8px;
+    transition:background 0.3s, border-color 0.3s, color 0.3s;
+  }
+  .cronometro.alerta{
+    background:rgba(179,38,30,0.85);
+    border-color:transparent;
+    animation:pulsar 1s infinite;
+  }
+  @keyframes pulsar{0%,100%{opacity:1;}50%{opacity:0.65;}}
+
+  .container{max-width:820px; margin:0 auto; padding:24px 18px 60px;}
+
+  /* Cabeçalhos de secção reutilizáveis */
+  .hero{padding:36px 4px 8px;}
+  .hero .eyebrow{
+    font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--verde); font-weight:600; margin-bottom:10px;
+  }
+  .hero h1{font-size:30px; color:var(--verde-escuro); line-height:1.15;}
+  .hero p{color:var(--cinza); font-size:15px; margin-top:10px; max-width:52ch;}
+
+  .voltar{
+    background:none; border:none; color:var(--verde); font-weight:600;
+    font-size:14px; cursor:pointer; padding:6px 0; margin-bottom:14px;
+    display:flex; align-items:center; gap:6px;
+  }
+
+  /* Tela inicial — lista de universidades */
+  .lista-universidades{display:flex; flex-direction:column; gap:14px; margin-top:24px;}
+  .lista-disciplinas{display:flex; flex-direction:column; gap:14px;}
+  .cartao-disciplina{
+    background:#fff;
+    border:1px solid var(--linha);
+    border-radius:14px;
+    padding:18px 20px;
+    cursor:pointer;
+    display:flex; align-items:center; gap:14px;
+    transition:border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+  .cartao-disciplina:active{transform:scale(0.99);}
+  .cartao-disciplina:hover{border-color:var(--dourado); box-shadow:0 6px 18px rgba(11,61,46,0.08);}
+  .cartao-disciplina .icone{
+    flex-shrink:0; width:44px; height:44px; border-radius:10px;
+    background:var(--creme); color:var(--verde);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-weight:700; font-size:15px;
+  }
+  .cartao-disciplina.tem-exames .icone{background:linear-gradient(150deg,var(--verde),var(--verde-escuro)); color:var(--dourado-claro);}
+  .cartao-disciplina .info{flex:1; min-width:0;}
+  .cartao-disciplina h3{font-size:16px; color:var(--verde-escuro); line-height:1.25; font-weight:600; font-family:'IBM Plex Sans',sans-serif;}
+  .cartao-disciplina .meta{font-size:12.5px; color:var(--cinza); margin-top:4px;}
+  .cartao-disciplina .seta{color:var(--dourado); font-size:18px; flex-shrink:0;}
+  .cartao-disciplina.vazia{opacity:0.6; cursor:default;}
+  .cartao-disciplina.vazia:hover{border-color:var(--linha); box-shadow:none;}
+  .cartao-universidade{
+    background:#fff;
+    border:1px solid var(--linha);
+    border-radius:14px;
+    padding:20px;
+    cursor:pointer;
+    display:flex; align-items:center; gap:16px;
+    transition:border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+  .cartao-universidade:active{transform:scale(0.99);}
+  .cartao-universidade:hover{border-color:var(--dourado); box-shadow:0 6px 18px rgba(11,61,46,0.08);}
+  .cartao-universidade .emblema{
+    flex-shrink:0; width:52px; height:52px; border-radius:12px;
+    background:linear-gradient(150deg,var(--verde),var(--verde-escuro));
+    color:var(--dourado-claro); display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-weight:700; font-size:17px;
+  }
+  .cartao-universidade .info{flex:1; min-width:0;}
+  .cartao-universidade h3{font-size:17px; color:var(--verde-escuro); line-height:1.25;}
+  .cartao-universidade .meta{
+    display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; font-size:12.5px; color:var(--cinza);
+  }
+  .cartao-universidade .seta{color:var(--dourado); font-size:20px; flex-shrink:0;}
+
+  .estado-vazio{
+    text-align:center; padding:50px 20px; color:var(--cinza);
+    border:1px dashed var(--linha); border-radius:14px; margin-top:20px;
+  }
+
+  /* Tela de disciplinas de uma universidade */
+  .cabecalho-universidade{
+    background:var(--verde); color:#fff; border-radius:16px; padding:24px 22px; margin-bottom:20px;
+    display:flex; align-items:center; gap:16px;
+  }
+  .cabecalho-universidade .emblema{
+    width:54px; height:54px; border-radius:12px; flex-shrink:0;
+    background:rgba(255,255,255,0.12); color:var(--dourado-claro);
+    display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:700; font-size:18px;
+  }
+  .cabecalho-universidade .eyebrow{color:var(--dourado-claro); font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:600;}
+  .cabecalho-universidade h2{font-size:21px; margin-top:4px;}
+
+  .lista-exames{display:flex; flex-direction:column; gap:14px;}
+  .cartao-exame{
+    background:#fff;
+    border:1px solid var(--linha);
+    border-radius:14px;
+    padding:20px;
+    cursor:pointer;
+    transition:border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    position:relative;
+    overflow:hidden;
+  }
+  .cartao-exame::before{
+    content:"";
+    position:absolute; left:0; top:0; bottom:0; width:4px;
+    background:var(--dourado);
+  }
+  .cartao-exame:active{transform:scale(0.99);}
+  .cartao-exame:hover{border-color:var(--dourado); box-shadow:0 6px 18px rgba(11,61,46,0.08);}
+  .cartao-exame .disciplina-eyebrow{
+    font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--dourado); margin-bottom:6px;
+  }
+  .cartao-exame h3{font-size:19px; color:var(--verde-escuro);}
+  .cartao-exame .meta{
+    display:flex; gap:16px; flex-wrap:wrap;
+    margin-top:12px; font-size:13px; color:var(--cinza);
+  }
+  .cartao-exame .meta span{display:flex; align-items:center; gap:5px;}
+
+  /* Tela de detalhes do exame */
+  .painel-detalhes{
+    background:#fff; border:1px solid var(--linha); border-radius:16px; overflow:hidden;
+  }
+  .painel-detalhes .cabecalho{
+    background:var(--verde); color:#fff; padding:28px 24px;
+  }
+  .painel-detalhes .cabecalho .universidade{
+    font-size:12px; text-transform:uppercase; letter-spacing:0.1em; color:var(--dourado-claro); font-weight:600;
+  }
+  .painel-detalhes .cabecalho h2{font-size:24px; margin-top:6px;}
+  .painel-detalhes .cabecalho .ano{
+    display:inline-block; margin-top:10px; font-size:13px;
+    background:rgba(255,255,255,0.12); padding:4px 10px; border-radius:20px;
+  }
+  .grade-info{
+    display:grid; grid-template-columns:1fr 1fr; gap:1px;
+    background:var(--linha);
+  }
+  .grade-info .item{background:#fff; padding:16px 18px;}
+  .grade-info .item .rotulo{font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--cinza); font-weight:600;}
+  .grade-info .item .valor{font-size:17px; font-weight:600; color:var(--verde-escuro); margin-top:3px;}
+
+  .instrucoes{padding:22px 24px;}
+  .instrucoes h3{font-size:15px; color:var(--verde-escuro); margin-bottom:12px;}
+  .instrucoes ul{margin:0; padding-left:18px; color:var(--carvao); font-size:14.5px; line-height:1.7;}
+  .instrucoes li{margin-bottom:4px;}
+
+  .rodape-detalhes{padding:20px 24px 26px;}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--verde); color:#fff; border:none;
+    padding:14px 22px; border-radius:10px; font-size:15px; font-weight:600;
+    cursor:pointer; width:100%; transition:background 0.15s, transform 0.1s;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  .btn:hover{background:var(--verde-escuro);}
+  .btn:active{transform:scale(0.98);}
+  .btn.dourado{background:var(--dourado); color:var(--verde-escuro);}
+  .btn.dourado:hover{background:var(--dourado-claro);}
+  .btn.contorno{background:#fff; color:var(--verde); border:1.5px solid var(--verde);}
+  .btn.contorno:hover{background:var(--sucesso-bg);}
+  .btn.perigo{background:var(--erro);}
+  .btn.perigo:hover{background:#8f1f19;}
+  .btn:disabled{opacity:0.5; cursor:not-allowed;}
+
+  /* Tela de exame */
+  .barra-progresso-wrap{
+    background:#fff; padding:14px 18px; border-bottom:1px solid var(--linha);
+    position:sticky; top:66px; z-index:15;
+  }
+  .barra-progresso-texto{
+    display:flex; justify-content:space-between; font-size:12.5px; color:var(--cinza); margin-bottom:7px; font-weight:500;
+  }
+  .barra-progresso{height:6px; background:var(--linha); border-radius:4px; overflow:hidden;}
+  .barra-progresso-fill{height:100%; background:linear-gradient(90deg,var(--dourado),var(--verde)); transition:width 0.25s;}
+
+  .navegador-questoes{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(38px,1fr));
+    gap:8px; padding:16px 18px; background:#fff; border-bottom:1px solid var(--linha);
+  }
+  .nav-q{
+    aspect-ratio:1; border-radius:8px; border:1.5px solid var(--linha);
+    background:#fff; font-size:13px; font-weight:600; color:var(--cinza);
+    cursor:pointer; font-family:'IBM Plex Mono', monospace;
+  }
+  .nav-q.respondida{background:var(--sucesso-bg); border-color:var(--sucesso); color:var(--sucesso);}
+  .nav-q.atual{background:var(--verde); border-color:var(--verde); color:#fff;}
+
+  .cartao-questao{
+    background:#fff; border:1px solid var(--linha); border-radius:14px;
+    padding:24px; margin-top:20px;
+  }
+  .cartao-questao .numero{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--dourado);
+    font-weight:600; letter-spacing:0.04em; margin-bottom:10px;
+  }
+  .cartao-questao .enunciado{font-size:16.5px; line-height:1.6; color:var(--carvao); margin-bottom:20px;}
+  .opcoes{display:flex; flex-direction:column; gap:10px;}
+  .opcao{
+    display:flex; align-items:flex-start; gap:12px;
+    border:1.5px solid var(--linha); border-radius:10px; padding:13px 15px;
+    cursor:pointer; transition:border-color 0.12s, background 0.12s;
+    font-size:15px; line-height:1.5;
+  }
+  .opcao:hover{border-color:var(--dourado);}
+  .opcao.selecionada{border-color:var(--verde); background:var(--sucesso-bg);}
+  .opcao .letra{
+    flex-shrink:0; width:26px; height:26px; border-radius:50%;
+    border:1.5px solid var(--linha); display:flex; align-items:center; justify-content:center;
+    font-size:12.5px; font-weight:700; font-family:'IBM Plex Mono', monospace; color:var(--cinza);
+  }
+  .opcao.selecionada .letra{background:var(--verde); border-color:var(--verde); color:#fff;}
+
+  .navegacao-questao{display:flex; gap:10px; margin-top:20px;}
+  .navegacao-questao .btn{width:auto; flex:1;}
+
+  .barra-inferior{
+    position:sticky; bottom:0; background:#fff; border-top:1px solid var(--linha);
+    padding:14px 18px; margin-top:24px;
+  }
+
+  /* Modal */
+  .modal-fundo{
+    position:fixed; inset:0; background:rgba(6,38,28,0.55); z-index:50;
+    display:flex; align-items:flex-end; justify-content:center;
+  }
+  .modal{
+    background:#fff; border-radius:16px 16px 0 0; padding:26px 22px 22px;
+    width:100%; max-width:480px; animation:subir 0.2s ease-out;
+  }
+  @media(min-width:540px){
+    .modal-fundo{align-items:center;}
+    .modal{border-radius:16px;}
+  }
+  @keyframes subir{from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+  .modal h3{font-size:19px; color:var(--verde-escuro); margin-bottom:10px;}
+  .modal p{font-size:14.5px; color:var(--cinza); line-height:1.6; margin-bottom:20px;}
+  .modal .acoes{display:flex; gap:10px;}
+  .modal .acoes .btn{width:auto; flex:1;}
+
+  /* Resultados */
+  .resumo-resultado{
+    background:var(--verde); color:#fff; border-radius:16px; padding:30px 24px;
+    text-align:center; margin-top:10px;
+  }
+  .resumo-resultado .universidade{font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--dourado-claro); font-weight:600;}
+  .resumo-resultado .nota{font-family:'Fraunces', serif; font-size:56px; font-weight:600; margin:14px 0 4px;}
+  .resumo-resultado .fracao{font-size:14px; opacity:0.8; margin-bottom:16px;}
+  .resumo-resultado .selo{display:inline-block; padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; background:rgba(255,255,255,0.15);}
+
+  .estatisticas-rapidas{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:16px;}
+  .estatisticas-rapidas .item{background:#fff; border:1px solid var(--linha); border-radius:12px; padding:14px 8px; text-align:center;}
+  .estatisticas-rapidas .item .valor{font-size:22px; font-weight:700; font-family:'Fraunces',serif;}
+  .estatisticas-rapidas .item.certas .valor{color:var(--sucesso);}
+  .estatisticas-rapidas .item.erradas .valor{color:var(--erro);}
+  .estatisticas-rapidas .item.tempo .valor{color:var(--verde); font-size:17px;}
+  .estatisticas-rapidas .item .rotulo{font-size:11px; color:var(--cinza); text-transform:uppercase; letter-spacing:0.04em; margin-top:2px;}
+
+  .acoes-resultado{display:flex; flex-direction:column; gap:10px; margin-top:22px;}
+
+  .correcao{margin-top:32px;}
+  .correcao > h3{font-size:18px; color:var(--verde-escuro); margin-bottom:16px;}
+  .item-correcao{
+    background:#fff; border:1px solid var(--linha); border-radius:14px; padding:20px;
+    margin-bottom:14px; border-left:4px solid var(--linha);
+  }
+  .item-correcao.certa{border-left-color:var(--sucesso);}
+  .item-correcao.errada{border-left-color:var(--erro);}
+  .item-correcao .cabecalho-item{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .item-correcao .numero{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--cinza); font-weight:600;}
+  .tag-resultado{font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px;}
+  .tag-resultado.certa{background:var(--sucesso-bg); color:var(--sucesso);}
+  .tag-resultado.errada{background:var(--erro-bg); color:var(--erro);}
+  .item-correcao .enunciado{font-size:15px; line-height:1.6; margin-bottom:14px; color:var(--carvao);}
+  .linha-resposta{font-size:14px; margin-bottom:5px; display:flex; gap:6px;}
+  .linha-resposta .rotulo{color:var(--cinza); flex-shrink:0;}
+  .linha-resposta.sua-errada{color:var(--erro); font-weight:600;}
+  .linha-resposta.correta{color:var(--sucesso); font-weight:600;}
+  .explicacao{margin-top:12px; background:var(--creme); border-radius:10px; padding:14px 16px; font-size:14px; line-height:1.65; color:var(--carvao);}
+  .explicacao .rotulo-exp{font-weight:700; color:var(--verde); display:block; margin-bottom:4px; font-size:12.5px; text-transform:uppercase; letter-spacing:0.04em;}
+
+  footer.rodape-app{text-align:center; padding:30px 20px 50px; color:var(--cinza); font-size:12.5px;}
+</style>
+
+<div class="topo">
+  <div class="marca">
+    <div class="pastilha">MC</div>
+    <div class="marca-texto">
+      <strong>Moz Carreiras</strong>
+      <span>Simulador de Admissão</span>
+    </div>
+  </div>
+  <div id="cronometro-topo" class="cronometro hidden">
+    <span>⏱</span><span id="texto-cronometro">00:00</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- TELA INICIAL — lista de universidades -->
+  <div id="tela-inicio">
+    <div class="hero">
+      <div class="eyebrow">Preparação para exames de admissão</div>
+      <h1>Pratica com exames reais de universidades moçambicanas</h1>
+      <p>Escolhe uma universidade pública e depois a disciplina que queres praticar. Cada simulação tem o tempo oficial, correção automática e explicação detalhada de todas as respostas.</p>
+    </div>
+    <div id="lista-universidades" class="lista-universidades"></div>
+  </div>
+
+  <!-- TELA DE UNIVERSIDADE — lista de disciplinas -->
+  <div id="tela-universidade" class="hidden">
+    <button class="voltar" onclick="mostrarTela('tela-inicio')">← Voltar às universidades</button>
+    <div class="cabecalho-universidade">
+      <div id="uni-emblema" class="emblema"></div>
+      <div>
+        <div class="eyebrow">Disciplinas disponíveis</div>
+        <h2 id="uni-nome"></h2>
+      </div>
+    </div>
+    <div id="lista-disciplinas" class="lista-disciplinas"></div>
+  </div>
+
+  <!-- TELA DE DISCIPLINA — lista de exames -->
+  <div id="tela-disciplina" class="hidden">
+    <button class="voltar" onclick="mostrarTela('tela-universidade')">← Voltar às disciplinas</button>
+    <div class="cabecalho-universidade">
+      <div id="disc-emblema" class="emblema"></div>
+      <div>
+        <div class="eyebrow" id="disc-universidade-nome"></div>
+        <h2 id="disc-nome"></h2>
+      </div>
+    </div>
+    <div id="lista-exames" class="lista-exames"></div>
+  </div>
+
+  <!-- TELA DE DETALHES DO EXAME -->
+  <div id="tela-detalhes" class="hidden">
+    <button class="voltar" onclick="mostrarTela('tela-disciplina')">← Voltar aos exames</button>
+    <div class="painel-detalhes">
+      <div class="cabecalho">
+        <div id="det-universidade" class="universidade"></div>
+        <h2 id="det-titulo"></h2>
+        <span id="det-ano" class="ano"></span>
+      </div>
+      <div class="grade-info">
+        <div class="item"><div class="rotulo">Duração</div><div id="det-duracao" class="valor"></div></div>
+        <div class="item"><div class="rotulo">Perguntas</div><div id="det-numquestoes" class="valor"></div></div>
+      </div>
+      <div class="instrucoes">
+        <h3>Instruções</h3>
+        <ul id="det-instrucoes"></ul>
+      </div>
+      <div class="rodape-detalhes">
+        <button class="btn dourado" onclick="pedirConfirmacaoInicio()">Iniciar Simulação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA DE EXAME -->
+  <div id="tela-exame" class="hidden"></div>
+
+  <!-- TELA DE RESULTADOS -->
+  <div id="tela-resultados" class="hidden"></div>
+
+</div>
+
+<div id="area-modal"></div>
+
+<footer class="rodape-app">Moz Carreiras · Simulador de Exames de Admissão</footer>
+
+<script>
+/* ==========================================================
+   BANCO DE DADOS: UNIVERSIDADES → DISCIPLINAS (EXAMES)
+   -----------------------------------------------------------
+   Para adicionar uma NOVA UNIVERSIDADE: acrescenta um novo
+   objecto ao array UNIVERSIDADES, com "exames": [].
+
+   Para adicionar uma NOVA DISCIPLINA/EXAME a uma universidade
+   já existente: acrescenta um objecto dentro do "exames"
+   dessa universidade, seguindo exactamente este formato:
+
+   {
+     id: "identificador-unico",
+     disciplina: "Nome da disciplina",
+     ano: 2026,
+     duracaoMinutos: 90,
+     instrucoes: ["...", "..."],
+     questoes: [
+       {
+         enunciado: "...",
+         opcoes: ["...", "...", "...", "..."],
+         correta: 0,          // índice da opção certa (0 = A, 1 = B...)
+         explicacao: "..."
+       }
+     ]
+   }
+   ========================================================== */
+const UNIVERSIDADES = [
+  {
+    id: "uem",
+    nome: "Universidade Eduardo Mondlane",
+    sigla: "UEM",
+    disciplinas: [
+      { id: "biologia", nome: "Biologia", exames: [] },
+      { id: "desenho", nome: "Desenho", exames: [] },
+      { id: "filosofia", nome: "Filosofia", exames: [] },
+      { id: "fisica", nome: "Física", exames: [] },
+      { id: "frances", nome: "Francês", exames: [] },
+      { id: "geografia", nome: "Geografia", exames: [] },
+      { id: "historia", nome: "História", exames: [] },
+      { id: "ingles", nome: "Inglês", exames: [] },
+      { id: "inquerito-sociolinguistico", nome: "Inquérito Sociolinguístico", exames: [] },
+      { id: "matematica", nome: "Matemática", exames: [] },
+      { id: "musica", nome: "Música", exames: [] },
+      { id: "portugues", nome: "Português", exames: [] },
+      {
+        id: "quimica",
+        nome: "Química",
+        exames: [
+      {
+        id: "uem-quimica-2004",
+        disciplina: "Química",
+        ano: 2004,
+        duracaoMinutos: 120,
+        instrucoes: [
+          "Exame com 4 alternativas por questão (A a D), estando correcta apenas uma.",
+          "Preenche as respostas com atenção; a folha óptica anula questões com mais de uma resposta.",
+          "O cronómetro inicia assim que carregares em \"Iniciar Simulação\".",
+          "3 perguntas do enunciado original (nºs 6, 11 e 13) foram excluídas desta simulação por inconsistências nos números do scan original (não batiam certo com nenhuma alternativa), para não te ensinar uma resposta errada.",
+          "No final poderás descarregar a correção completa em PDF."
+        ],
+        questoes: [
+          {
+            enunciado: "Quais dos elementos com a configuração electrónica dada (só electrões de valência) são metais? I. 4s¹  II. 3d⁵4s²  III. 4s²4p⁵  IV. 4s²4p⁶",
+            opcoes: ["I e II", "I, II e III", "III e IV", "Todos"],
+            correta: 0,
+            explicacao: "4s¹ (ex: K) e 3d⁵4s² (ex: Mn) são configurações de metais (alcalino e metal de transição). 4s²4p⁵ é um halogéneo (não-metal) e 4s²4p⁶ é um gás nobre (não-metal). Só I e II correspondem a metais."
+          },
+          {
+            enunciado: "Que compostos podem reagir com o ácido sulfúrico (H₂SO₄)? 1) SO₃  2) MgO  3) Al₂O₃  4) HCN",
+            opcoes: ["1 e 2", "2 e 3", "1 e 3", "1 e 4"],
+            correta: 1,
+            explicacao: "MgO é um óxido básico e Al₂O₃ é um óxido anfotérico — ambos reagem com ácidos fortes formando sal e água. SO₃ é um óxido ácido (não reage com outro ácido) e o HCN é um ácido muito fraco que não reage com o H₂SO₄."
+          },
+          {
+            enunciado: "Qual dos compostos abaixo apresenta a mesma análise química elementar (a mesma fórmula empírica) que o aldeído fórmico (CH₂O)? A) C₇H₆O₂  B) C₃H₈O₃  C) C₆H₁₂O₆  D) C₁₂H₂₂O₁₁",
+            opcoes: ["C7H6O2", "C3H8O3", "C6H12O6", "C12H22O11"],
+            correta: 2,
+            explicacao: "O aldeído fórmico tem a proporção C:H:O = 1:2:1. Só o C₆H₁₂O₆ reduz exactamente a essa proporção (dividindo tudo por 6). Os outros compostos têm proporções diferentes."
+          },
+          {
+            enunciado: "Em que átomo se preenche o subnível electrónico p? A) Ba  B) Ti  C) Fe  D) Po",
+            opcoes: ["Ba", "Ti", "Fe", "Po"],
+            correta: 3,
+            explicacao: "O Bário preenche o subnível s (6s²), o Titânio e o Ferro preenchem o subnível d (3d). O Polónio ([Xe]4f¹⁴5d¹⁰6s²6p⁴) é o único cujo último electrão entra no subnível p (6p⁴)."
+          },
+          {
+            enunciado: "Em qual (quais) das moléculas dadas tem lugar a ligação covalente apolar? 1) CO  2) CO₂  3) O₂  4) Cl₂  5) HF",
+            opcoes: ["2 e 4", "3 e 4", "2 e 5", "2, 3 e 5"],
+            correta: 1,
+            explicacao: "A ligação covalente apolar ocorre entre átomos iguais (mesma electronegatividade), como em O₂ e Cl₂. CO, CO₂ e HF unem átomos diferentes, logo têm ligações polares."
+          },
+          {
+            enunciado: "Quais dos factos abaixo indicam que o Arsénio é elemento mais electropositivo que o fósforo? A) AsH₃ é menos estável que PH₃. B) AsH₃ é um agente redutor mais forte que o PH₃. C) O composto As(OH)₃ pode ser convertido em iões positivos por ácido forte, o mesmo não acontece com o P(OH)₃. D) Todos os factos são válidos.",
+            opcoes: ["AsH3 é menos estável que PH3", "AsH3 é agente redutor mais forte", "As(OH)3 forma iões positivos com ácido forte, P(OH)3 não", "Todos os factos são válidos"],
+            correta: 3,
+            explicacao: "Sendo mais electropositivo, o As forma um hidreto menos estável (A), com maior poder redutor (B), e o seu hidróxido tem carácter mais básico, podendo comportar-se como base perante um ácido forte (C). As três afirmações são consequências correctas da maior electropositividade do arsénio."
+          },
+          {
+            enunciado: "A reacção abaixo indica a formação de um elemento novo (a) quando o isótopo de Einstênio (₉₉Es²⁵³) é bombardeado com partículas ²He⁴: ₉₉Es²⁵³ + ₂He⁴ → a + 2n. Qual é o conjunto que reflecte os números atómico e de massa do elemento novo (a)?",
+            opcoes: ["99a253", "101a255", "100a255", "101a257"],
+            correta: 1,
+            explicacao: "Conservando o número atómico: 99 + 2 = 101. Conservando o número de massa: 253 + 4 = 257, menos a massa dos 2 neutrões libertados (2×1=2), resulta em 255. O elemento novo é 101a255."
+          },
+          {
+            enunciado: "Dos elementos que participam nas reacções nucleares sucessivas: ₉₂E1²³⁸ → E2 + α; E2 → E3 + β; E3 → E4 + β",
+            opcoes: [
+              "E1 e E2 são isótopos e E2, E3, E4 são isóbaros",
+              "E1 e E3 são isótopos e E2, E3, E4 são isóbaros",
+              "E1 e E4 são isótopos e E2, E3, E4 são isóbaros",
+              "E1 e E4 são isótopos e E1, E2, E3 são isóbaros"
+            ],
+            correta: 2,
+            explicacao: "A emissão α tira 2 protões e 4 de massa: E2 fica com Z=90, A=234. Cada emissão β aumenta o Z em 1 mantendo a massa: E3 (Z=91,A=234) e E4 (Z=92,A=234). Como E1 tem Z=92,A=238 e E4 tem Z=92,A=234, são isótopos (mesmo Z, A diferente). E2, E3 e E4 partilham A=234, logo são isóbaros entre si."
+          },
+          {
+            enunciado: "Qual dos hidróxidos seguintes não pode formar o sal básico? A) KOH  B) Ca(OH)₂  C) Cu(OH)₂  D) Al(OH)₃",
+            opcoes: ["KOH", "Ca(OH)2", "Cu(OH)2", "Al(OH)3"],
+            correta: 0,
+            explicacao: "Um sal básico resulta da neutralização incompleta de uma base poli-hidroxilada, mantendo pelo menos um grupo OH⁻ ligado ao metal. O KOH só tem um único grupo OH, por isso não pode formar um sal básico — a neutralização é sempre total."
+          },
+          {
+            enunciado: "A reacção A + 2B → C decorre com velocidade V. Se a concentração de A for duplicada e a de B for reduzida à metade, a reacção decorrerá com velocidade:",
+            opcoes: ["0,2 V", "0,25 V", "0,3 V", "0,5 V"],
+            correta: 3,
+            explicacao: "Com base na estequiometria (lei de velocidade v = k[A][B]²), duplicar [A] multiplica a velocidade por 2, e reduzir [B] a metade multiplica por (0,5)² = 0,25. O efeito combinado é 2 × 0,25 = 0,5, logo a nova velocidade é 0,5V."
+          },
+          {
+            enunciado: "Em que caso a energia de activação é máxima, se as reacções químicas ocorrem entre: A) moléculas  B) átomos  C) iões radicais  D) radicais",
+            opcoes: ["moléculas", "átomos", "iões radicais", "radicais"],
+            correta: 0,
+            explicacao: "Reacções entre moléculas exigem quebrar ligações químicas existentes antes de formar novas, o que implica maior energia de activação. Átomos, iões e radicais já têm electrões desemparelhados ou cargas que facilitam a reacção, com barreiras energéticas muito mais baixas."
+          },
+          {
+            enunciado: "O produto de solubilidade de brometo de prata é 5,2×10⁻¹³. Se a solução contém 2×10⁻² moles/l de iões Br⁻, a máxima concentração de iões Ag⁺ que pode existir na solução sem precipitar o brometo de prata é:",
+            opcoes: ["2,0×10-2 M", "2,6×10-11 M", "2,0×102 M", "2,6×1011 M"],
+            correta: 1,
+            explicacao: "Pela expressão do Kps: [Ag⁺][Br⁻] = 5,2×10⁻¹³. Logo [Ag⁺] = 5,2×10⁻¹³ ÷ 2×10⁻² = 2,6×10⁻¹¹ M. Acima deste valor, o AgBr começaria a precipitar."
+          },
+          {
+            enunciado: "Se o volume de um recipiente de reacção 2SO₂(g) + O₂(g) = 2SO₃(g), no qual o sistema se encontra em equilíbrio, reduzir para metade:",
+            opcoes: ["a velocidade da reacção directa e inversa mantém-se iguais", "o equilíbrio não se desloca", "o equilíbrio desloca-se para a direita", "o equilíbrio desloca-se para a esquerda"],
+            correta: 2,
+            explicacao: "Reduzir o volume aumenta a pressão total. Pelo princípio de Le Chatelier, o equilíbrio desloca-se para o lado com menor número de moles gasosos. Os reagentes somam 3 moles de gás (2+1) e os produtos 2 moles — o equilíbrio desloca-se para a direita, a favor da formação de SO₃."
+          },
+          {
+            enunciado: "A reacção CO(g) + Cl₂(g) = COCl₂(g) decorre num recipiente fechado a temperatura constante, com os reagentes em quantidades equivalentes. Quando se estabelece o equilíbrio, restam 50% da quantidade inicial de CO. Determine a pressão de equilíbrio da mistura gasosa (em kPa), sabendo que a pressão inicial era 100 kPa.",
+            opcoes: ["50", "75", "100", "125"],
+            correta: 1,
+            explicacao: "Considerando n mol de CO e n mol de Cl₂ inicialmente (total 2n, pressão 100 kPa). Reagindo 50% do CO (0,5n), restam 0,5n de CO, 0,5n de Cl₂ e formam-se 0,5n de COCl₂: total 1,5n moles. Como a pressão é proporcional ao número de moles (V e T constantes), a nova pressão é 100 × (1,5n / 2n) = 75 kPa."
+          },
+          {
+            enunciado: "Numa solução aquosa de amoníaco (base fraca), a partícula com maior concentração (além da água) é:",
+            opcoes: ["H+", "OH-", "NH3", "NH4+"],
+            correta: 2,
+            explicacao: "Sendo uma base fraca, o amoníaco ioniza-se apenas parcialmente (NH₃ + H₂O ⇌ NH₄⁺ + OH⁻). A grande maioria das moléculas permanece na forma não ionizada, NH₃, que é por isso a espécie mais concentrada."
+          },
+          {
+            enunciado: "A 25°C, a solubilidade do NaCl é igual a 36,0g em 100g de água. Qual é a fracção em massa (%massa) do NaCl na sua solução saturada?",
+            opcoes: ["26,0", "26,5", "27,0", "27,5"],
+            correta: 1,
+            explicacao: "A massa total da solução é 100g (água) + 36g (NaCl) = 136g. A fracção em massa é 36/136 × 100 ≈ 26,5%."
+          },
+          {
+            enunciado: "Quantos gramas de nitrato de potássio se cristalizam a partir de 105,0g de uma solução saturada a 60°C, se a arrefecermos até 0°C, sendo as solubilidades a essas temperaturas iguais a 110,0g e 13,0g em 100g de água, respectivamente?",
+            opcoes: ["36,7", "48,5", "60,0", "78,3"],
+            correta: 1,
+            explicacao: "A 60°C, a solução saturada tem 110g de sal por 210g de solução total. Nos 105g de solução (metade), há 55g de KNO₃ dissolvidos em 50g de água. A 0°C, a solubilidade máxima para 50g de água é 13×0,5=6,5g. A massa que cristaliza é 55−6,5=48,5g."
+          },
+          {
+            enunciado: "Os isómeros cis-trans geralmente: A) Contém um átomo de carbono quiral. B) Desviam o plano da luz polarizada. C) São enantiómorfos. D) Contém carbono com dupla ligação.",
+            opcoes: ["Contém um átomo de carbono quiral", "Desviam o plano da luz polarizada", "São enantiómorfos", "Contém carbono com dupla ligação"],
+            correta: 3,
+            explicacao: "A isomeria cis-trans (geométrica) resulta da rotação restrita em torno de uma ligação dupla (ou anel), que impede a livre rotação e fixa a posição dos substituintes. Não está relacionada com quiralidade nem com o desvio da luz polarizada, que caracterizam a isomeria óptica."
+          },
+          {
+            enunciado: "Qual é o valor da fem da pilha Zn/Cu representada pelo esquema: Zn(s) / Cu²⁺aq(0,020M) // Cu(s) / Zn²⁺aq(0,40M); E⁰ = +1,10 V",
+            opcoes: ["0,106 V", "1,60 V", "1,06 V", "1,50 V"],
+            correta: 2,
+            explicacao: "Usando a equação de Nernst com n=2: E = E⁰ − (0,0592/n)·log Q, com Q = [Zn²⁺]/[Cu²⁺] = 0,40/0,020 = 20. E = 1,10 − (0,0592/2)×log(20) = 1,10 − 0,0296×1,301 ≈ 1,10 − 0,0385 ≈ 1,06 V."
+          },
+          {
+            enunciado: "Nesta série, o grupo que só apresenta orientadores orto-para é: A) -NO₂; -OH; -CHO; -CONH₂; -N(CH₃)₃  B) -NH₂; -NHCH₃; -Br; -C₂H₅; -OCH₃  C) -NHCOCH₃; -C₂H₅; -COOC₂H₅; -NO₂; -CH₃  D) -OH; -SO₃H; -COOH; -CN; -SH",
+            opcoes: ["-NO2; -OH; -CHO; -CONH2; -N(CH3)3", "-NH2; -NHCH3; -Br; -C2H5; -OCH3", "-NHCOCH3; -C2H5; -COOC2H5; -NO2; -CH3", "-OH; -SO3H; -COOH; -CN; -SH"],
+            correta: 1,
+            explicacao: "O grupo B reúne apenas substituintes orientadores orto-para: -NH₂, -NHCH₃ e -OCH₃ são fortemente activantes o,p; -C₂H₅ é um grupo alquilo activante o,p; e o -Br, apesar de desactivante, continua a ser orientador o,p (por ressonância dos pares isolados). Os outros grupos misturam substituintes meta-orientadores (como -NO₂, -CHO, -COOH, -SO₃H, -CN)."
+          },
+          {
+            enunciado: "Dados os compostos orgânicos: i) C₆H₅NH₂; ii) CH₃NH₂; iii) CH₃CONH₂; iv) (CH₃CO)₂O; v) (CH₃)₂NH. A ordem decrescente de basicidade é:",
+            opcoes: ["v; ii; i; iii; iv", "i; v; ii; iii; iv", "iv; iii; i; ii; v", "i; v; iv; ii; iii"],
+            correta: 0,
+            explicacao: "As aminas alifáticas secundárias, como (CH₃)₂NH (v), são as mais básicas devido ao efeito indutivo doador dos grupos alquilo. Seguem-se as aminas alifáticas primárias, CH₃NH₂ (ii). As aminas aromáticas, como a anilina C₆H₅NH₂ (i), são menos básicas porque o par de electrões do azoto é deslocalizado no anel. As amidas (iii) e os anidridos (iv) são praticamente não-básicos, porque o par de electrões do azoto/oxigénio está fortemente estabilizado por ressonância com o grupo carbonilo."
+          },
+          {
+            enunciado: "Um elemento X interage com um elemento Z que passa imediatamente de valência -3 para valência -1. Esta situação permite dizer que:",
+            opcoes: ["O Z captou electrões de X", "O X captou electrões de Z", "X e Z trocaram electrões", "X e Z captaram electrões"],
+            correta: 1,
+            explicacao: "A valência de Z passou de -3 para -1, ou seja, tornou-se menos negativa — isso significa que Z perdeu electrões (foi oxidado). Esses electrões perdidos por Z foram captados pelo elemento X, que actuou como agente oxidante."
+          },
+          {
+            enunciado: "Na reacção: As₂S₃ + 14H₂O₂ + 12NH₄OH → 2(NH₄)₃AsO₄ + 3(NH₄)₂SO₄ + 20H₂O, os dadores de electrões são:",
+            opcoes: ["Os átomos de Arsénio", "Os átomos de Oxigénio", "Os átomos de Arsénio e enxofre", "Nenhuma das respostas citadas"],
+            correta: 2,
+            explicacao: "Nesta reacção redox, o arsénio é oxidado de +3 (em As₂S₃) para +5 (em AsO₄³⁻), e o enxofre é oxidado de -2 (em As₂S₃) para +6 (em SO₄²⁻). Ambos os elementos perdem electrões, actuando como dadores de electrões (agentes redutores), enquanto o H₂O₂ é o agente oxidante."
+          }
+        ]
+      },
+      {
+        id: "uem-quimica-2005",
+        disciplina: "Química",
+        ano: 2005,
+        duracaoMinutos: 120,
+        instrucoes: [
+          "Exame com 4 alternativas por questão (A a D), estando correcta apenas uma.",
+          "Preenche as respostas com atenção; a folha óptica anula questões com mais de uma resposta.",
+          "O cronómetro inicia assim que carregares em \"Iniciar Simulação\".",
+          "2 perguntas do enunciado original (nºs 1 e 37) foram excluídas por faltar informação no scan (uma tabela em falta) ou por ambiguidade na formulação. Uma pergunta duplicada (nº 34, repetição exacta da nº 12) também foi removida.",
+          "No final poderás descarregar a correção completa em PDF."
+        ],
+        questoes: [
+          {
+            enunciado: "Entre as alternativas abaixo, a correcta é:",
+            opcoes: [
+              "Dois átomos com o mesmo número de neutrões pertencem ao mesmo elemento químico",
+              "Dois átomos com o mesmo número de electrões de valência pertencem ao mesmo elemento químico",
+              "Dois átomos com o mesmo número de protões pertencem ao mesmo elemento químico",
+              "Dois átomos com o mesmo número de massa são isótopos"
+            ],
+            correta: 2,
+            explicacao: "O número de protões (número atómico, Z) é a característica que define univocamente um elemento químico. Átomos com o mesmo número de protões pertencem sempre ao mesmo elemento, independentemente do número de neutrões ou de massa."
+          },
+          {
+            enunciado: "O isótopo de ₁₉K⁴⁰ transforma-se no isótopo de ₂₀Ca⁴⁰. Qual é o tipo de desintegração radioactiva que se dá?",
+            opcoes: ["desintegração α", "desintegração β⁻", "desintegração β+", "captura electrónica"],
+            correta: 1,
+            explicacao: "O número de massa mantém-se (40→40) mas o número atómico aumenta em 1 unidade (19→20). Isto é característico da desintegração β⁻, em que um neutrão do núcleo se transforma num protão, emitindo um electrão, aumentando Z em 1 sem alterar A."
+          },
+          {
+            enunciado: "(₅₁X¹²²)³⁺ é uma partícula cuja configuração electrónica apresenta na última camada:",
+            opcoes: ["5s2", "5s2; 4d3", "5s2; 4d6", "5s2; 6s1"],
+            correta: 0,
+            explicacao: "O átomo neutro X (Z=51, antimónio) tem configuração [Kr]4d¹⁰5s²5p³. Ao formar o ião 3+, perde os 3 electrões do subnível mais externo (5p³), ficando com a configuração [Kr]4d¹⁰5s², cuja camada mais externa é 5s²."
+          },
+          {
+            enunciado: "O número de oxidação e a valência do carbono na molécula de CO são iguais:",
+            opcoes: ["+2 e II", "-2 e II", "+2 e III", "-2 e III"],
+            correta: 0,
+            explicacao: "No CO, o oxigénio tem nox -2 (valor habitual), pelo que o carbono deve ter nox +2 para a molécula ser neutra. Neste composto peculiar, o carbono apresenta valência II (divalente), formando uma ligação tripla com carácter dativo parcial com o oxigénio."
+          },
+          {
+            enunciado: "Em que molécula a distância internuclear entre átomos de carbono é mínima e a energia de activação é máxima?",
+            opcoes: ["C2H6", "C2H4", "C2H2", "C6H6"],
+            correta: 2,
+            explicacao: "Quanto maior a ordem de ligação (simples < dupla < tripla), menor é a distância entre os núcleos e maior é a energia necessária para quebrar essa ligação. O C₂H₂ (acetileno) tem uma ligação tripla C≡C, a mais curta e a mais forte (maior energia de activação para a quebrar) entre as opções."
+          },
+          {
+            enunciado: "A fórmula do óxido contendo 50% de enxofre é (massas atómicas: S=32; O=16):",
+            opcoes: ["SO3", "SO2", "SO", "S2O3"],
+            correta: 1,
+            explicacao: "No SO₂, a massa molar é 32+32=64 g/mol, e a percentagem de enxofre é 32/64 = 50%. Nas outras fórmulas a percentagem de S não atinge 50% (SO₃: 32/80=40%) ou ultrapassa-a."
+          },
+          {
+            enunciado: "Uma substância A conduz corrente eléctrica em solução aquosa. Outra substância, B, conduz corrente no estado sólido. Uma terceira, C, nunca conduz corrente eléctrica. O tipo de ligação química existente nessas substâncias é, respectivamente:",
+            opcoes: ["Iónica; metálica; covalente polar", "Metálica; iónica; covalente apolar", "Covalente polar; iónica; covalente apolar", "Iónica; metálica; covalente apolar"],
+            correta: 3,
+            explicacao: "Uma substância que só conduz em solução aquosa (não no estado sólido) tem ligação iónica — precisa dos iões livres em solução. Uma que conduz no estado sólido tem ligação metálica (electrões livres na rede). Uma que nunca conduz é covalente apolar, sem cargas móveis."
+          },
+          {
+            enunciado: "No processo de ebulição de água são quebradas:",
+            opcoes: [
+              "as ligações covalentes polares nas moléculas de água",
+              "só as ligações de Van der Waals entre as moléculas de água",
+              "as ligações de Van der Waals entre as moléculas de água e as pontes de hidrogénio entre as moléculas de água",
+              "as ligações covalentes nas moléculas de água e as pontes de hidrogénio entre as moléculas de água"
+            ],
+            correta: 2,
+            explicacao: "A ebulição é uma mudança de estado físico: quebram-se apenas as forças intermoleculares (Van der Waals e, principalmente, as pontes de hidrogénio entre moléculas de água), nunca as ligações covalentes O-H dentro da molécula, que permanecem intactas."
+          },
+          {
+            enunciado: "A teoria de ácidos e bases de Bronsted-Lowry é mais ampla que a de Arrhenius. Entre os grupos de substâncias e iões abaixo, aquele em que existem dois ácidos de Arrhenius e quatro de Bronsted-Lowry é:",
+            opcoes: ["HF, HCl, NO3-, HSO4-, Cl-, SO4 2-", "HCl, H2SO4, Cl-, HSO4-", "H2SO4, NH4+, H3O+, HF", "HCl, HF, HNO3, H2SO4"],
+            correta: 2,
+            explicacao: "Neste grupo, o H₂SO₄ e o HF são ácidos de Arrhenius clássicos (moléculas neutras que libertam H⁺ em água) — 2 ácidos de Arrhenius. Já pela definição de Bronsted-Lowry (dador de protão), todas as 4 espécies (H₂SO₄, NH₄⁺, H₃O⁺ e HF) conseguem ceder um protão, sendo por isso 4 ácidos de Bronsted-Lowry."
+          },
+          {
+            enunciado: "Como se altera a velocidade da reacção inversa se aumentarmos a pressão do sistema seguinte em três vezes: 2CO(g) + O2(g) ⇌ 2CO2(g)?",
+            opcoes: ["Aumenta 27 vezes", "Diminui 27 vezes", "Diminui 9 vezes", "Aumenta 9 vezes"],
+            correta: 3,
+            explicacao: "A reacção inversa é a decomposição 2CO2 → 2CO + O2, cuja velocidade depende de [CO2]². Ao triplicar a pressão, todas as concentrações (incluindo a de CO2) triplicam. A nova velocidade fica multiplicada por 3² = 9, ou seja, aumenta 9 vezes."
+          },
+          {
+            enunciado: "Nesta síntese do amoníaco: N2(g) + 3H2(g) ⇌ 2NH3(g); as concentrações de azoto, hidrogénio e amoníaco são respectivamente 0,8; 1,5 e 0,1 mol/l. Quais serão as concentrações de amoníaco e hidrogénio se a de azoto baixar para 0,5 mol/l?",
+            opcoes: ["0,7 e 0,6", "0,13 e 1,8", "0,4 e 2,4", "0,5 e 0,2"],
+            correta: 0,
+            explicacao: "A quantidade de N₂ consumida foi 0,8-0,5=0,3 mol/l. Pela estequiometria (1 N₂ : 3 H₂ : 2 NH₃), o H₂ consumido é 3×0,3=0,9 mol/l (de 1,5 para 0,6) e o NH₃ formado é 2×0,3=0,6 mol/l (de 0,1 para 0,7). Logo: [NH₃]=0,7 e [H₂]=0,6."
+          },
+          {
+            enunciado: "O coeficiente de solubilidade de NH4Cl a 50°C é igual a 50g em 100g de água. Qual é a fracção em massa (%mass.) do NH4Cl na sua solução saturada, à mesma temperatura?",
+            opcoes: ["6,6", "13,3", "26,6", "33,3"],
+            correta: 3,
+            explicacao: "A massa total da solução saturada é 100g (água) + 50g (NH₄Cl) = 150g. A fracção em massa é 50/150 × 100 ≈ 33,3%."
+          },
+          {
+            enunciado: "Um aquecedor a gás consome 2,24 litros/minuto de butano (medido em CNTP). Nesta reacção de combustão de butano, a velocidade de formação de dióxido de carbono será de:",
+            opcoes: ["0,10 moles/minuto", "0,20 moles/minuto", "0,30 moles/minuto", "0,40 moles/minuto"],
+            correta: 3,
+            explicacao: "2,24 L/min ÷ 22,4 L/mol = 0,1 mol/min de butano. Pela equação C₄H₁₀ + 13/2 O₂ → 4CO₂ + 5H₂O, cada mole de butano forma 4 moles de CO₂. Logo a velocidade de formação de CO₂ é 0,1 × 4 = 0,40 moles/minuto."
+          },
+          {
+            enunciado: "O volume de cloro libertado nas CNTP por uma corrente de 3 A que atravessa uma solução aquosa diluída de HCl durante 5 minutos é:",
+            opcoes: ["0,10 cm3", "0,20 cm3", "0,10 dm3", "0,20 dm3"],
+            correta: 2,
+            explicacao: "Carga Q=I×t=3×300s=900 C. Moles de electrões = 900/96500≈0,00933 mol. No ânodo, 2Cl⁻→Cl₂+2e⁻, logo moles de Cl₂ = 0,00933/2≈0,00466 mol. Volume nas CNTP = 0,00466×22,4≈0,104 dm³, aproximadamente 0,10 dm³."
+          },
+          {
+            enunciado: "Com base nos processos termoquímicos a 25°C: C(diamante)+O2(g)→CO2(g); ΔH=-395,4 kJ. C(grafite)+O2(g)→CO2(g); ΔH=-393,5 kJ. Pode-se dizer que a energia padrão da transformação C(grafite)→C(diamante) é igual a:",
+            opcoes: ["-788,9 Kj", "+1,9 Kj", "-1,9 Kj", "+788,9 Kj"],
+            correta: 1,
+            explicacao: "Pela Lei de Hess: ΔH(grafite→diamante) = ΔH(grafite→CO₂) − ΔH(diamante→CO₂) = (-393,5) − (-395,4) = +1,9 kJ. A transformação é ligeiramente endotérmica."
+          },
+          {
+            enunciado: "Se as entalpias de atomização e de ligação C-H no benzeno forem, respectivamente, 5540 e 414 Kj/mol, a energia de ligação C-C será igual a:",
+            opcoes: ["390,3 Kj/mol", "459,7 Kj/mol", "209,8 Kj/mol", "509,3 Kj/mol"],
+            correta: 3,
+            explicacao: "O benzeno (C6H6) tem 6 ligações C-H e 6 ligações C-C. A energia de atomização total é a soma de todas: 5540 = 6×414 + 6×(C-C). Isolando: 6×(C-C) = 5540-2484=3056, logo C-C = 3056/6 ≈ 509,3 kJ/mol."
+          },
+          {
+            enunciado: "Um composto X é solúvel em dois solventes Y e Z, insolúveis entre si. Tendo uma massa de X igual a 12,0g em quantidades iguais dos dois solventes, esta estará assim distribuída: 2,0g em Y e 10,0g em Z. Pode-se concluir que a solubilidade de X nos dois solventes é:",
+            opcoes: ["50 g/100g de Y e 10 g/100g de Z", "20 g/100g de Y e 40 g/100g de Z", "10 g/100g de Y e 50 g/100g de Z", "40 g/100g de Y e 20 g/100g de Z"],
+            correta: 2,
+            explicacao: "A razão entre as massas dissolvidas (2g em Y e 10g em Z, usando a mesma quantidade de cada solvente) é 1:5. Só a opção com 10 g/100g de Y e 50 g/100g de Z mantém essa mesma proporção (1:5), sendo por isso a única coerente com os dados."
+          },
+          {
+            enunciado: "Qual dos seguintes reagentes, quando adicionado a uma solução de FeCl3, diminui a hidrólise deste sal:",
+            opcoes: ["NaOH", "Na2CO3", "HCl", "H2O"],
+            correta: 2,
+            explicacao: "A hidrólise do FeCl₃ segue Fe³⁺ + 3H₂O ⇌ Fe(OH)₃ + 3H⁺. Adicionar HCl aumenta a concentração de H⁺, um dos produtos desta reacção, deslocando o equilíbrio para a esquerda (efeito do ião comum) e diminuindo a hidrólise."
+          },
+          {
+            enunciado: "Para que haja precipitação é preciso que se verifique a relação:",
+            opcoes: [
+              "Constante de solubilidade exactamente igual ao Produto iónico",
+              "Constante de solubilidade aproximada ao Produto iónico",
+              "Constante de solubilidade menor do que o Produto iónico",
+              "Constante de solubilidade maior do que o Produto iónico"
+            ],
+            correta: 2,
+            explicacao: "A precipitação ocorre quando o produto iónico (Q) das concentrações dos iões em solução ultrapassa o valor do produto de solubilidade (Ksp), ou seja, quando Ksp é menor que o Produto iónico."
+          },
+          {
+            enunciado: "A 25°C, a constante de equilíbrio Kc da reacção A(g)+B(g)=C(g) tem o valor 4,6×10⁹. Se colocarmos 0,20 mol de C num recipiente fechado de 10,0 dm³, as concentrações de A, B e C no equilíbrio serão, respectivamente:",
+            opcoes: ["6,6×10-6 M; 6,6×10-6 M; 3,0×10-2 M", "2,1×10-6 M; 2,1×10-6 M; 2,0×10-2 M", "4,2×10-6 M; 4,2×10-6 M; 2,0×10-2 M", "nenhuma das anteriores"],
+            correta: 1,
+            explicacao: "[C] inicial = 0,20/10 = 0,02 M. Como Kc é muito grande, quase todo o C permanece como C; seja x a quantidade que se decompõe em A e B: Kc=(0,02-x)/x² ≈ 0,02/x² = 4,6×10⁹. Resolvendo, x≈2,1×10⁻⁶ M, e [C]≈0,02 M (a diminuição é desprezável)."
+          },
+          {
+            enunciado: "Calcular o valor da constante de equilíbrio da reacção seguinte, realizada a 25°C. Considere: E0 (Hg2)2+/2Hg = 0,79 V; Fe3+/Fe2+ = 0,77 V.",
+            opcoes: ["1,56", "4,76", "5,12", "0,90"],
+            correta: 1,
+            explicacao: "A reacção espontânea é Hg₂²⁺ + 2Fe²⁺ → 2Hg + 2Fe³⁺, com E°célula = 0,79-0,77 = 0,02 V e n=2. Usando log K = nE°/0,0592 = 2×0,02/0,0592 ≈ 0,676, obtém-se K = 10^0,676 ≈ 4,74, muito próximo de 4,76."
+          },
+          {
+            enunciado: "Quantos equivalentes de KI são necessários para reduzir num meio ácido 1 mol de KMnO4 até sal de Mn(II)?",
+            opcoes: ["5", "4", "3", "2"],
+            correta: 0,
+            explicacao: "No MnO₄⁻, o manganês passa de +7 para +2, ganhando 5 electrões por átomo. Como o número de equivalentes de um agente redutor deve igualar o número de electrões transferidos pelo oxidante, são necessários 5 equivalentes de KI para reduzir 1 mol de KMnO₄."
+          },
+          {
+            enunciado: "Durante a electrólise de uma solução aquosa de CuCl2, no ânodo libertam-se 11200ml de gás (CNTP). Determine a massa de cobre que se liberta no cátodo. (MCu=63,55 u.m.a.)",
+            opcoes: ["63,55g", "31,78g", "6,36g", "3,18g"],
+            correta: 1,
+            explicacao: "11200 mL = 11,2 L de Cl₂ ÷ 22,4 L/mol = 0,5 mol de Cl₂. No ânodo, 2Cl⁻→Cl₂+2e⁻, logo formam-se 1 mol de electrões. No cátodo, Cu²⁺+2e⁻→Cu, logo 0,5 mol de Cu, com massa 0,5×63,55≈31,78g."
+          },
+          {
+            enunciado: "O alcano mais simples que apresenta isomeria óptica é o:",
+            opcoes: ["Etano", "2,2-dimetilpropano", "Butano", "3-metil hexano"],
+            correta: 3,
+            explicacao: "Para haver isomeria óptica é preciso um carbono assimétrico ligado a 4 grupos diferentes. No 3-metilhexano, o carbono 3 está ligado a H, CH₃, um grupo etilo (C₂H₅) e um grupo propilo (C₃H₇) — quatro substituintes distintos, tornando-o o alcano mais simples com essa propriedade."
+          },
+          {
+            enunciado: "Trimetilbenzeno pode apresentar-se em:",
+            opcoes: ["6 isómeros possíveis", "2 isómeros possíveis", "3 isómeros possíveis", "5 isómeros possíveis"],
+            correta: 2,
+            explicacao: "O trimetilbenzeno tem 3 isómeros de posição possíveis, consoante a disposição dos três grupos metilo no anel benzénico: 1,2,3-trimetilbenzeno, 1,2,4-trimetilbenzeno e 1,3,5-trimetilbenzeno (mesitileno)."
+          },
+          {
+            enunciado: "Indique éster entre os compostos oxigenados seguintes:",
+            opcoes: ["CH3CH2OCH2CH3", "CH3CO2CH2CH3", "CH3CH2COCH2CH3", "CH3CH2CO2H"],
+            correta: 1,
+            explicacao: "CH₃CO₂CH₂CH₃ (acetato de etilo) tem o grupo funcional éster (-COO-). A opção A é um éter, a C é uma cetona e a D é um ácido carboxílico."
+          },
+          {
+            enunciado: "Quando a água congela ocorre:",
+            opcoes: [
+              "redução de ligações intermoleculares",
+              "redução de ligações intramoleculares",
+              "aumento de ligações intermoleculares",
+              "aumento de ligações intramoleculares"
+            ],
+            correta: 2,
+            explicacao: "Ao congelar, as moléculas de água organizam-se numa rede cristalina rígida com o número máximo de pontes de hidrogénio possível entre moléculas vizinhas, aumentando o número de ligações intermoleculares em relação ao estado líquido."
+          },
+          {
+            enunciado: "A força dos hidrácidos da família dos halogénios cresce na sequência HF, HCl, HBr, HI, devido ao aumento:",
+            opcoes: ["da carga do átomo central", "da força da base", "da electronegatividade", "do tamanho do ião negativo"],
+            correta: 3,
+            explicacao: "A força ácida cresce porque, ao descer no grupo, o halogéneo fica maior e a ligação H-X torna-se mais longa e mais fraca, facilitando a ionização. É o aumento do tamanho do ião negativo (halogeneto) que explica esta tendência, e não a electronegatividade, que na verdade diminui de F para I."
+          },
+          {
+            enunciado: "Uma solução tampão foi preparada misturando-se 200,0 ml de uma solução de NH3 0,60M e 300,0 ml de uma solução de NH4Cl 0,20M. O valor de pKb de NH3 é 4,76. Esta solução tampão tem um pH de:",
+            opcoes: ["8,94", "9,54", "10,0", "9,06"],
+            correta: 1,
+            explicacao: "Moles: NH₃=0,2×0,6=0,12 mol; NH₄Cl=0,3×0,2=0,06 mol; volume total=0,5L → [NH₃]=0,24M, [NH₄⁺]=0,12M. Pela equação de Henderson-Hasselbalch: pOH=pKb+log([NH₄⁺]/[NH₃])=4,76+log(0,5)=4,76-0,30=4,46. pH=14-4,46≈9,54."
+          },
+          {
+            enunciado: "Misturam-se uma solução de um ácido com a solução de uma base em relações equivalentes. Qual dos seguintes pares ácido-base dá origem a uma solução neutra?",
+            opcoes: ["NH3(aq) + HNO3", "NaOH + HCl", "NaOH + CH3COOH", "HCOOH + KOH"],
+            correta: 1,
+            explicacao: "Só a neutralização entre um ácido forte e uma base forte (NaOH e HCl) produz um sal que não hidrolisa, resultando numa solução neutra. Os outros pares envolvem um componente fraco, gerando sais que hidrolisam e tornam a solução ácida ou básica."
+          },
+          {
+            enunciado: "Quantas vezes a solubilidade de BaSO4 em presença de um meio com 0,1M de ião comum será inferior à deste mesmo sal na água pura? Produto de solubilidade de BaSO4 é igual a 10-10.",
+            opcoes: ["103", "104", "105", "106"],
+            correta: 1,
+            explicacao: "Em água pura: s=√Ksp=√10⁻¹⁰=10⁻⁵ M. Em presença de 0,1M de ião comum: [Ba²⁺]=Ksp/0,1=10⁻¹⁰/0,1=10⁻⁹ M. A razão entre as duas solubilidades é 10⁻⁵/10⁻⁹=10⁴, ou seja, a solubilidade fica 10⁴ vezes menor."
+          },
+          {
+            enunciado: "Durante a electrólise de uma solução aquosa de NaOH, no ânodo libertam-se 2,8 litros de oxigénio (CNTP). Que quantidade de hidrogénio se liberta no cátodo?",
+            opcoes: ["2,8 litros", "5,6 litros", "11,2 litros", "22,4 litros"],
+            correta: 1,
+            explicacao: "Moles de O₂ = 2,8/22,4 = 0,125 mol. No ânodo, 4OH⁻→O₂+2H₂O+4e⁻, logo moles de electrões = 4×0,125=0,5 mol. No cátodo, 2H₂O+2e⁻→H₂+2OH⁻, logo moles de H₂ = 0,5/2=0,25 mol, correspondendo a 0,25×22,4=5,6 litros."
+          },
+          {
+            enunciado: "Qual é a razão entre as concentrações de um ácido (Ka=1,8×10-5) e de seu sal, numa solução tampão com pH igual a 5,7?",
+            opcoes: ["1 : 9", "1 : 2", "2 : 3", "3 : 1"],
+            correta: 0,
+            explicacao: "pKa=-log(1,8×10⁻⁵)≈4,74. Pela equação de Henderson-Hasselbalch: pH=pKa+log([sal]/[ácido]) → 5,7=4,74+log([sal]/[ácido]) → log([sal]/[ácido])≈0,96 → [sal]/[ácido]≈9. Logo a razão [ácido]:[sal] é aproximadamente 1:9."
+          },
+          {
+            enunciado: "Na equação redox dada: Cr2O7-2 + H2O2 + H+ → Cr+3 + H2O + O2. Depois de balanceada, a soma dos coeficientes da equação em cada membro será:",
+            opcoes: ["8", "15", "20", "12"],
+            correta: 3,
+            explicacao: "Balanceando por semi-reacções: redução Cr₂O₇²⁻+14H⁺+6e⁻→2Cr³⁺+7H₂O; oxidação (×3) 3H₂O₂→3O₂+6H⁺+6e⁻. Somando e simplificando os H⁺: Cr₂O₇²⁻+3H₂O₂+8H⁺→2Cr³⁺+7H₂O+3O₂. A soma dos coeficientes em cada membro é 1+3+8=12 (esquerda) e 2+7+3=12 (direita)."
+          }
+        ]
+      },
+      {
+        id: "uem-quimica-2006",
+        disciplina: "Química",
+        ano: 2006,
+        duracaoMinutos: 120,
+        instrucoes: [
+          "Exame com 4 alternativas por questão (A a D), estando correcta apenas uma.",
+          "Preenche as respostas com atenção; a folha óptica anula questões com mais de uma resposta.",
+          "O cronómetro inicia assim que carregares em \"Iniciar Simulação\".",
+          "2 perguntas do enunciado original (nºs 13 e 35) foram excluídas por terem mais de uma resposta correcta possível, consoante a leitura dos dados.",
+          "No final poderás descarregar a correção completa em PDF."
+        ],
+        questoes: [
+          {
+            enunciado: "São dados três átomos genéricos A, B e C. O átomo A tem número atómico 70 e número de massa 160. O átomo C tem 94 neutrões, sendo isótopo de A. O átomo B é isóbaro de C e isótono de A. O número de electrões do átomo B é:",
+            opcoes: ["160", "70", "74", "164"],
+            correta: 2,
+            explicacao: "C é isótopo de A (mesmo Z=70) e tem 94 neutrões, logo A(massa) de C = 70+94=164. B é isóbaro de C, logo tem massa 164. B é isótono de A (mesmo nº de neutrões que A: 160-70=90 neutrões). Logo Z de B = 164-90=74, e o número de electrões (átomo neutro) é 74."
+          },
+          {
+            enunciado: "Considerem-se dois compostos E e F, sendo o primeiro molecular e o segundo iónico. Pode-se afirmar que:",
+            opcoes: [
+              "os dois, quando fundidos, sempre conduzem corrente eléctrica",
+              "os dois, quando em solução aquosa, sempre conduzem corrente eléctrica",
+              "somente E pode conduzir electricidade quando ambos estão em solução aquosa",
+              "no composto F, podem ocorrer ligações covalentes entre seus átomos"
+            ],
+            correta: 3,
+            explicacao: "Um composto iónico pode conter iões poliatómicos (como NO₃⁻ ou SO₄²⁻) cujos átomos internos estão ligados entre si por ligações covalentes, mesmo que a ligação global do composto seja iónica. As outras afirmações são generalizações falsas."
+          },
+          {
+            enunciado: "Sejam dados os elementos ₃₅X⁸⁰; ₐYᵇ; ᶜZᵈ. Se considerar-se que o átomo Z tem 47 neutrões, é isótopo de X e isóbaro de Y, e que o átomo Y é isótono de X, então o átomo Y deve ter:",
+            opcoes: ["37 protões", "82 protões", "35 protões", "47 protões"],
+            correta: 0,
+            explicacao: "X tem 45 neutrões (80-35). Z é isótopo de X (Z=35) com 47 neutrões, logo massa de Z=82. Y é isóbaro de Z, logo massa de Y=82. Y é isótono de X (mesmo nº de neutrões que X: 45). Logo protões de Y = 82-45=37."
+          },
+          {
+            enunciado: "Que volume de hidrogénio é necessário para a redução completa de 20 gramas do óxido de cobre (II)?",
+            opcoes: ["5.6 litros", "11.2 litros", "4.48 litros", "2.24 litros"],
+            correta: 0,
+            explicacao: "CuO + H₂ → Cu + H₂O. Moles de CuO = 20/80 = 0,25 mol (M≈80g/mol). Na proporção 1:1, moles de H₂ = 0,25 mol, correspondendo a 0,25×22,4=5,6 litros nas CNTP."
+          },
+          {
+            enunciado: "A estrutura da camada electrónica de valência do ião E3+ do átomo dum elemento E, com carga nuclear 26, é:",
+            opcoes: ["4s24p3", "3d34s2", "3d5", "3d7"],
+            correta: 2,
+            explicacao: "O átomo E (Z=26, ferro) tem configuração [Ar]3d⁶4s². Ao formar o ião E³⁺, perdem-se primeiro os 2 electrões 4s e depois 1 electrão 3d, ficando com a configuração [Ar]3d⁵."
+          },
+          {
+            enunciado: "Os elementos que possuem na última camada: 1) 4s²; 2) 4s²4p⁵; 3) 5s²5p⁶; 4) 2s¹ classificam-se dentro dos grupos da tabela periódica como:",
+            opcoes: [
+              "alcalino, alcalino-terroso, gás nobre e halogénio",
+              "alcalino, halogénio, alcalino-terroso e gás nobre",
+              "alcalino-terroso, halogénio, gás nobre e alcalino",
+              "alcalino-terroso, gás nobre, halogénio e alcalino"
+            ],
+            correta: 2,
+            explicacao: "4s² corresponde a um metal alcalino-terroso (2 electrões de valência). 4s²4p⁵ é um halogéneo (7 electrões de valência). 5s²5p⁶ é um gás nobre (camada completa). 2s¹ é um metal alcalino (1 electrão de valência)."
+          },
+          {
+            enunciado: "A ligação química entre o elemento de número atómico 17 e o de número atómico 19 é do tipo:",
+            opcoes: ["de Van der Waals", "covalente", "iónica", "metálica"],
+            correta: 2,
+            explicacao: "O elemento de Z=17 é o cloro (um halogéneo, não-metal muito electronegativo) e o de Z=19 é o potássio (um metal alcalino). A grande diferença de electronegatividade entre um metal e um não-metal típico resulta numa ligação iónica (formando KCl)."
+          },
+          {
+            enunciado: "Dissolvem-se 2 gramas de NaOH em água suficiente para um litro de solução. A solução resultante, a 25°C, apresenta:",
+            opcoes: ["pH = 1,3", "pH = 12,7", "pOH = 2,7", "pOH = 12,7"],
+            correta: 1,
+            explicacao: "Moles de NaOH = 2/40 = 0,05 mol, logo [OH⁻]=0,05M. pOH=-log(0,05)≈1,30. pH=14-1,30≈12,7."
+          },
+          {
+            enunciado: "Uma determinada solução tem a densidade igual a 1,5 g/ml e 30% em massa de soluto. A concentração dessa solução, em g/l, será:",
+            opcoes: ["0,45", "45", "450", "2000"],
+            correta: 2,
+            explicacao: "Considerando 1 litro de solução: massa total = 1000mL×1,5g/mL=1500g. Massa de soluto = 30%×1500g=450g. A concentração é 450 g/L."
+          },
+          {
+            enunciado: "Adicionam-se 300 ml de água a 200 ml de uma solução de 0,5 N de H2SO4. Qual será a sua normalidade?",
+            opcoes: ["0,2 N", "0,4 N", "0,04 N", "0,02 N"],
+            correta: 0,
+            explicacao: "Usando N₁V₁=N₂V₂: 0,5×200=N₂×(200+300)=N₂×500. Logo N₂=100/500=0,2 N."
+          },
+          {
+            enunciado: "Misturando-se um volume de uma solução 1 N com o dobro de volume de outra solução do mesmo soluto, mas com metade da normalidade, resulta uma solução:",
+            opcoes: ["2,0 N", "1,5 N", "0,66 N", "0,5 N"],
+            correta: 2,
+            explicacao: "Considerando V de solução 1N e 2V de solução 0,5N: total de equivalentes = V×1 + 2V×0,5 = 2V. Volume total = 3V. Normalidade final = 2V/3V ≈ 0,66 N."
+          },
+          {
+            enunciado: "Qual o valor do pH da solução de H2SO4 a 0,012 M?",
+            opcoes: ["1,62", "2,62", "3,4", "2,7"],
+            correta: 0,
+            explicacao: "O H₂SO₄ é um diácido forte, fornecendo [H⁺]=2×0,012=0,024M. pH=-log(0,024)≈1,62."
+          },
+          {
+            enunciado: "Quando um elemento emite uma partícula α e em seguida duas partículas β, os elementos primitivo e final:",
+            opcoes: [
+              "Têm o mesmo número de massa",
+              "São isótopos radioactivos",
+              "Possuem números atómicos diferentes",
+              "Têm a mesma massa atómica"
+            ],
+            correta: 1,
+            explicacao: "A emissão α reduz Z em 2 e A em 4. Cada emissão β aumenta Z em 1 (2 emissões repõem os 2 protões perdidos), voltando ao Z original, mas A permanece reduzido em 4. Assim, os elementos primitivo e final têm o mesmo número atómico e massas diferentes — são isótopos."
+          },
+          {
+            enunciado: "Em quantas vezes se altera a velocidade da reacção FeO(s) + CO(g) = Fe(s) + CO2(g) se a pressão do sistema aumentar em 2 vezes?",
+            opcoes: ["diminuirá em 2 vezes", "aumentará em 4 vezes", "aumentará em 2 vezes", "ficará a mesma"],
+            correta: 2,
+            explicacao: "Como o FeO e o Fe são sólidos, a velocidade só depende da concentração de CO (gasoso), v=k[CO]. Duplicar a pressão duplica [CO], logo a velocidade duplica também."
+          },
+          {
+            enunciado: "Para qual das reacções a alteração da pressão não influi no equilíbrio?",
+            opcoes: ["2CO + O2 = 2CO2", "C + H2O = CO + H2", "H2 + Cl2 = 2HCl", "H2S + O2 = H2O + S"],
+            correta: 2,
+            explicacao: "A pressão só afecta o equilíbrio quando há diferença no número de moles de gás entre reagentes e produtos. Em H₂+Cl₂=2HCl, ambos os lados têm 2 moles de gás — não há variação de moles gasosos, logo a pressão não desloca este equilíbrio."
+          },
+          {
+            enunciado: "Para neutralizar-se 20 ml de uma solução de ácido clorídrico HCl a 0,1N (0,1M) foram necessários 8 ml de uma solução de NaOH. Quantos gramas de NaOH existem num litro desta solução, sendo a massa molecular de NaOH de 40 u.m.a?",
+            opcoes: ["4 g", "6 g", "8 g", "10 g"],
+            correta: 3,
+            explicacao: "N₁V₁=N₂V₂: 0,1×20=N₂×8 → N₂=0,25N=0,25 mol/L (pois NaOH tem 1 equivalente por mol). Massa por litro = 0,25×40=10g."
+          },
+          {
+            enunciado: "Quantos iões de hidrogénio se encontram em 10 ml de uma solução cujo pH = 13?",
+            opcoes: ["10^13", "10^11", "6,02×10^10", "6,02×10^8"],
+            correta: 3,
+            explicacao: "pH=13 → [H⁺]=10⁻¹³M. Em 10mL (0,01L): moles H⁺=10⁻¹³×0,01=10⁻¹⁵mol. Número de iões = 10⁻¹⁵×6,02×10²³=6,02×10⁸."
+          },
+          {
+            enunciado: "Qual é a fracção em massa (% mass.) de glucose, numa solução com 280 g de água e 40 g de glucose?",
+            opcoes: ["12,5", "13,0", "13,5", "14,0"],
+            correta: 0,
+            explicacao: "Massa total da solução = 280+40=320g. Fracção em massa = 40/320×100=12,5%."
+          },
+          {
+            enunciado: "A partir de 400 g de uma solução de H2SO4 a 50% mass. libertam-se por evaporação 100 g de água. Qual é a fracção em massa de H2SO4 na solução resultante?",
+            opcoes: ["58,5", "62,6", "66,7", "70,8"],
+            correta: 2,
+            explicacao: "Massa inicial de H₂SO₄ = 50%×400=200g e de água=200g. Após evaporar 100g de água, restam 100g de água e 200g de ácido, total=300g. Fracção = 200/300×100≈66,7%."
+          },
+          {
+            enunciado: "Qual dos seguintes reagentes, quando adicionado a uma solução de FeCl3, acentua a hidrólise deste sal?",
+            opcoes: ["HCl", "ZnCl2", "NH4Cl", "H2O"],
+            correta: 3,
+            explicacao: "O grau de hidrólise de um sal aumenta com a diluição. Adicionar água (H₂O) dilui a solução, deslocando o equilíbrio Fe³⁺+3H₂O⇌Fe(OH)₃+3H⁺ no sentido de maior hidrólise."
+          },
+          {
+            enunciado: "São dados: Cr → Cr3+ + 3e-; E° = +0,71 V e Cu → Cu2+ + 2e-; E° = -0,35 V. A força electromotriz da pilha Cr°/Cr3+//Cu°/Cu2+ é:",
+            opcoes: ["+0,36 V", "+0,37 V", "+1,06 V", "+2,47 V"],
+            correta: 2,
+            explicacao: "O crómio oxida-se no ânodo (E°=+0,71V, já dado como potencial de oxidação). No cátodo, o Cu²⁺ reduz-se (potencial de redução = +0,35V, inverso do valor dado como oxidação). E_pilha = 0,71+0,35=1,06V."
+          },
+          {
+            enunciado: "A energia de certa pilha provém de uma reacção através da qual o Níquel metálico (Ni°) transforma-se em iões Ni2+, e os iões Ag+ depositam-se como prata metálica (Ag°). Esses dados revelam que nessa pilha ocorre oxidação de:",
+            opcoes: ["Ni° e Ag°", "Ni° e Ag+", "somente Ni°", "somente Ni2+"],
+            correta: 2,
+            explicacao: "Ni°→Ni²⁺ é uma perda de electrões (oxidação). Ag⁺→Ag° é um ganho de electrões (redução), não oxidação. Logo, só o níquel metálico sofre oxidação."
+          },
+          {
+            enunciado: "Para aumentar o pH de uma solução aquosa, é necessário nela borbulhar o gás:",
+            opcoes: ["clorídrico (HCl)", "amoníaco (NH3)", "carbónico (CO2)", "hidrogénio (H2)"],
+            correta: 1,
+            explicacao: "O amoníaco é uma base que, ao dissolver-se em água, produz iões OH⁻, aumentando o pH. HCl e CO₂ são ácidos (diminuem o pH) e o H₂ é neutro."
+          },
+          {
+            enunciado: "Que volumes das soluções de HCl 2M e HCl 6M se devem juntar para obter 500ml de solução HCl 3M?",
+            opcoes: ["0,125; 0,375", "0,375; 0,125", "0,152; 0,345", "0,275; 0,225"],
+            correta: 1,
+            explicacao: "Sejam V₁(2M) e V₂(6M): V₁+V₂=0,5L e 2V₁+6V₂=3×0,5=1,5. Resolvendo: V₂=0,125L e V₁=0,375L. Logo, o volume de HCl 2M é 0,375L e o de HCl 6M é 0,125L."
+          },
+          {
+            enunciado: "Os valores da molalidade e da fracção molar de uma dada substância dissolvida em solução de sacarose C12H22O11 a 67% são:",
+            opcoes: ["5,96 e 0,097", "9,56 e 9,07", "2,96 e 0,07", "4,18 e 0,19"],
+            correta: 0,
+            explicacao: "Numa base de 100g de solução: 67g de sacarose (67/342≈0,196 mol) e 33g de água (33/18≈1,833 mol). Molalidade = 0,196/0,033kg≈5,96 mol/kg. Fracção molar da sacarose = 0,196/(0,196+1,833)≈0,097."
+          },
+          {
+            enunciado: "Na reacção redox: NaCrO2 + H2O2; NaOH → Na2CrO4 + H2O, o agente oxidante é:",
+            opcoes: ["Na2CrO4", "H2O2", "NaOH", "NaCrO2"],
+            correta: 1,
+            explicacao: "O crómio no NaCrO₂ (+3) é oxidado a +6 no Na₂CrO₄, pelo que o NaCrO₂ é o agente redutor. O oxigénio no H₂O₂ (-1) é reduzido a -2 na H₂O, tornando o H₂O₂ o agente oxidante."
+          },
+          {
+            enunciado: "Quais das transformações indicadas pertencem ao processo de oxidação? A) V2+→VO3-  B) S→S2-  C) 2H+→H2  D) MnO4-→MnO42-",
+            opcoes: ["V2+ para VO3-", "S para S2-", "2H+ para H2", "MnO4- para MnO4(2-)"],
+            correta: 0,
+            explicacao: "Em V²⁺→VO₃⁻, o vanádio passa de +2 para +5, perdendo electrões (oxidação). Nas outras: S vai de 0 a -2 (redução), H⁺ vai de +1 a 0 (redução), e Mn vai de +7 a +6 (redução)."
+          },
+          {
+            enunciado: "Uma placa de ferro é mergulhada numa solução de CuSO4. Depois de decorrida a reacção, a massa da placa aumentou em dois gramas. Qual é a massa de cobre que se libertou da solução? (MFe=55,84; MCu=63,54)",
+            opcoes: ["16,5 g", "17,0 g", "18,0 g", "18,5 g"],
+            correta: 0,
+            explicacao: "Fe+CuSO₄→FeSO₄+Cu. Por cada mole reagida, a massa da placa varia +63,54 (Cu depositado) -55,84 (Fe dissolvido) = +7,70g. Se x moles reagiram: 7,70x=2 → x≈0,2597mol. Massa de Cu depositada = 0,2597×63,54≈16,5g."
+          },
+          {
+            enunciado: "Durante a electrólise de uma solução aquosa de KOH no ânodo libertam-se 5,6 litros de oxigénio (CNTP) em consequência do processo 4OH-→O2+2H2O+4ē. Que quantidade de hidrogénio se liberta no cátodo:",
+            opcoes: ["2,8 litros", "5,6 litros", "11,2 litros", "22,4 litros"],
+            correta: 2,
+            explicacao: "Moles O₂=5,6/22,4=0,25mol → moles e⁻=4×0,25=1mol. No cátodo, 2H₂O+2e⁻→H₂+2OH⁻, logo moles H₂=1/2=0,5mol, correspondendo a 0,5×22,4=11,2 litros."
+          },
+          {
+            enunciado: "Durante a electrólise de uma solução aquosa de cloreto de cobre, com um ânodo de cobre activo, a massa do cátodo aumentou em 3,2 g. O que é que aconteceu entretanto no ânodo de cobre?",
+            opcoes: [
+              "libertam-se 0,112 litro de Cl2",
+              "libertam-se 0,56 litro de O2",
+              "passaram para a solução 0,1 mol de Cu2+",
+              "passaram para a solução 0,05 mol de Cu2+"
+            ],
+            correta: 3,
+            explicacao: "Como o ânodo é de cobre metálico (activo, não inerte), ele próprio se dissolve (Cu→Cu²⁺+2e⁻) em vez de libertar gás. Moles de Cu depositado no cátodo = 3,2/63,5≈0,05mol, e igual quantidade de Cu²⁺ passa para a solução a partir do ânodo."
+          },
+          {
+            enunciado: "Sabendo que a constante de equilíbrio para a reacção: CO2(g) + H2(g) ⇌ CO(g) + H2O(g) é 0,9, a quantidade de CO em equilíbrio com 0,5 mol de CO2, 1,6 g de H2 e 1,0 mol de H2O, num vaso de volume V, será:",
+            opcoes: ["0,72", "0,36", "0,37", "0,70"],
+            correta: 1,
+            explicacao: "Como reagentes e produtos têm o mesmo número de moles de gás, o volume simplifica-se na expressão de Kc, podendo usar-se directamente as quantidades em mol: Kc=[CO][H2O]/([CO2][H2])=([CO]×1,0)/(0,5×0,8)=0,9 (usando 1,6g H2÷2g/mol=0,8mol). Logo [CO]=0,9×0,4=0,36 mol."
+          },
+          {
+            enunciado: "Para a reacção: A + B ⇌ C + 2D foram obtidas as seguintes concentrações molares no equilíbrio: A=4,0; B=3,0; C=1,5; D=2,0. Quando B=8,0, C=4,0 e D=4,0, a concentração molar de A será:",
+            opcoes: ["16,0", "9,0", "0,8", "1,5"],
+            correta: 0,
+            explicacao: "Do primeiro estado, Kc=([C][D]²)/([A][B])=(1,5×2,0²)/(4,0×3,0)=6/12=0,5. No segundo estado: 0,5=(4,0×4,0²)/([A]×8,0)=64/(8[A]). Logo [A]=64/(8×0,5)=16,0."
+          },
+          {
+            enunciado: "Que método pode ser usado para deslocar o equilíbrio da seguinte reacção para a direita? 2CH4(g) = C2H2(g) + 3H2(g); ΔH>0",
+            opcoes: ["aumento da pressão", "aumento da concentração de H2", "diminuição da concentração de C2H2", "diminuição da temperatura"],
+            correta: 2,
+            explicacao: "Remover um produto (diminuir [C₂H₂]) desloca o equilíbrio para a direita, formando mais produto para compensar. Aumentar a pressão ou reduzir a temperatura, sendo ΔH>0, deslocariam o equilíbrio para a esquerda."
+          },
+          {
+            enunciado: "A combustão do propano obedece à equação: C3H8(g) + 5O2(g) → 3CO2(g) + 4H2O(g). Havendo consumo de 0,5 mol moléculas do propano em 15 minutos, a velocidade da reacção, em moles de CO2 por minuto, será:",
+            opcoes: ["0,033", "0,300", "0,100", "0,200"],
+            correta: 2,
+            explicacao: "Velocidade de consumo de propano = 0,5/15≈0,0333 mol/min. Pela estequiometria, cada mole de propano forma 3 moles de CO₂: 0,0333×3=0,1 mol/min."
+          },
+          {
+            enunciado: "Dada a reacção: A + B ⇌ C + D que se processa com velocidade X, se as concentrações de A e de B forem reduzidas à metade, a nova velocidade de reacção será:",
+            opcoes: ["X", "1/2X", "1/4X", "1/8X"],
+            correta: 2,
+            explicacao: "Assumindo uma reacção elementar com v=k[A][B], reduzir ambas as concentrações a metade dá v'=k(0,5A)(0,5B)=0,25×k[A][B]=X/4."
+          },
+          {
+            enunciado: "Durante a combinação de 2,1 g de ferro com enxofre libertaram-se 3,77kJ. Qual é o calor de formação do sulfureto de ferro ΔH°?",
+            opcoes: ["-90,2 kJ/mol", "-100,3 kJ/mol", "-110,4 kJ/mol", "-120,5 kJ/mol"],
+            correta: 1,
+            explicacao: "Moles de Fe = 2,1/55,85≈0,0376 mol, formando igual número de moles de FeS. Calor por mole = -3,77/0,0376≈-100,3 kJ/mol."
+          },
+          {
+            enunciado: "Em qual dos seguintes casos não é possível levar-se a cabo a reacção a qualquer temperatura?",
+            opcoes: ["ΔH°>0, ΔS°>0", "ΔH°>0, ΔS°<0", "ΔH°<0, ΔS°>0", "ΔH°<0, ΔS°<0"],
+            correta: 1,
+            explicacao: "A espontaneidade depende de ΔG=ΔH-TΔS. Quando ΔH>0 (desfavorável) e ΔS<0 (desfavorável), ambos os termos tornam ΔG positivo a qualquer temperatura, tornando a reacção sempre não espontânea."
+          },
+          {
+            enunciado: "A 20°C a constante de velocidade de uma certa reacção é igual a 10-4 min-1, enquanto que a 50°C é igual a 8×10-4 min-1. Qual é o coeficiente térmico da velocidade da reacção?",
+            opcoes: ["2", "3", "4", "5"],
+            correta: 0,
+            explicacao: "A diferença de temperatura é 30°C, ou seja, 3 intervalos de 10°C. Pela regra de Van't Hoff: k₂/k₁=γ³ → 8=γ³ → γ=2."
+          },
+          {
+            enunciado: "Pertence à classe das aminas primárias, o composto que se obtém pela substituição:",
+            opcoes: [
+              "de um dos átomos de hidrogénio do NH3, por um radical alquila",
+              "de um dos átomos de hidrogénio do NH3, por um radical acila",
+              "de dois átomos de hidrogénio do NH3, por dois radicais arila",
+              "de dois átomos de hidrogénio do NH3, por um radical alquilidena"
+            ],
+            correta: 0,
+            explicacao: "Uma amina primária tem a fórmula R-NH₂, resultando da substituição de apenas um hidrogénio do NH₃ por um grupo alquilo (a substituição por um radical acila daria uma amida, não uma amina)."
+          },
+          {
+            enunciado: "A reacção de substituição nucleofílica monomolecular (SN1) é favorecida pela presença de:",
+            opcoes: [
+              "Nucleófilo fraco, substrato terciário, base fraca",
+              "Nucleófilo forte, substrato secundário, meio ácido",
+              "Nucleófilo fraco, substrato primário, meio básico",
+              "Nucleófilo forte, substrato terciário, catalisador"
+            ],
+            correta: 0,
+            explicacao: "A SN1 é favorecida por substratos terciários (que formam carbocatiões estáveis), nucleófilos fracos (já que a etapa lenta não envolve o nucleófilo) e bases fracas (para evitar competição com a eliminação E2)."
+          },
+          {
+            enunciado: "Na molécula de 1-buteno-3-ino encontram-se:",
+            opcoes: ["Dois carbonos sp2 e dois carbonos sp3", "Um carbono sp3 e três carbonos sp2", "Dois carbonos sp2 e dois carbonos sp", "Um carbono sp3, um carbono sp2 e dois carbonos sp"],
+            correta: 2,
+            explicacao: "A estrutura CH2=CH-C≡CH tem: C1 e C2 (ligação dupla) hibridados sp², e C3 e C4 (ligação tripla) hibridados sp. Logo, dois carbonos sp² e dois carbonos sp."
+          },
+          {
+            enunciado: "Num composto orgânico a razão entre massas de H, O e C é 1,0:3,2:7,2 respectivamente. A massa molecular do composto é 114. A estrutura do composto pode ser:",
+            opcoes: ["CH3(CH2)5CHO", "CH3(CH2)4COOH", "CH3CH2CH2CH=CH-COOH", "CH3CH=CH-CH=CH-CH2-CHO"],
+            correta: 2,
+            explicacao: "Convertendo a razão de massas em moles (H=1,0; O=3,2/16=0,2; C=7,2/12=0,6) e dividindo pelo menor valor, obtém-se a fórmula empírica C3H5O (massa=57). Como a massa molecular é 114 (o dobro), a fórmula molecular é C6H10O2, que corresponde exactamente ao ácido hex-4-enóico (opção C)."
+          },
+          {
+            enunciado: "Disponha em ordem decrescente de ponto de ebulição os compostos seguintes: a. n-heptano; b. 3,3-dimetilpentano; c. Octano; d. 2-metil-hexano; e. 2-metilpentano.",
+            opcoes: ["a, d, c, e, b", "e, c, b, d, a", "c, a, d, b, e", "d, c, a, b, e"],
+            correta: 2,
+            explicacao: "O ponto de ebulição aumenta com o número de carbonos e diminui com a ramificação. Octano (8C) é o maior; entre os isómeros de 7 carbonos, a ordem decrescente é n-heptano (linear) > 2-metil-hexano (1 ramificação) > 3,3-dimetilpentano (2 ramificações no mesmo carbono, mais compacto); por fim, o 2-metilpentano (só 6 carbonos) é o menor. Ordem: c, a, d, b, e."
+          },
+          {
+            enunciado: "Nesta série o grupo que só apresenta orientadores orto-para é:",
+            opcoes: ["-NO2; -OH; -CHO; -CONH2; -N(CH3)3", "-NH2; -NHCH3; -Br; -C2H5; -OCH3", "-NHCOCH3; -C2H5; -COOC2H5; -NO2; -CH3", "-OH; -SO3H; -COOH; -CN; -SH"],
+            correta: 1,
+            explicacao: "Todos os substituintes do grupo B (-NH₂, -NHCH₃, -Br, -C₂H₅, -OCH₃) são orientadores orto-para, quer por doação de electrões por ressonância (NH₂, NHCH₃, OCH₃), quer por efeito indutivo doador (alquilo), quer por ressonância dos pares isolados apesar de desactivante (Br). Os outros grupos misturam orientadores meta."
+          },
+          {
+            enunciado: "Na combustão completa de 20 moles de um alceno são produzidos 60 moles de dióxido de carbono. O alceno queimado pode ser:",
+            opcoes: ["2-metil-2-buteno", "eteno", "propeno", "buteno-2"],
+            correta: 2,
+            explicacao: "Um alceno CnH2n produz n moles de CO₂ por mole. Se 20 moles de alceno produzem 60 moles de CO₂, n=60/20=3, ou seja, o alceno tem 3 carbonos: o propeno."
+          },
+          {
+            enunciado: "Um dos componentes da gasolina é octano, C8H18, cuja combustão incompleta produz CO. Admitindo-se que a combustão incompleta do octano é representada pela equação: C8H18 + 11O2 = 5CO2 + 3CO + 9H2O, a partir de 100 moles de octano, qual é o número de moléculas de CO obtido?",
+            opcoes: ["30,0", "18,0×10^25", "300", "3000"],
+            correta: 1,
+            explicacao: "Pela estequiometria, 100 moles de octano produzem 3×100=300 moles de CO. O número de moléculas é 300×6,02×10²³≈18,0×10²⁵."
+          },
+          {
+            enunciado: "O HBr reage com 3,4-dimetil-2-penteno, formando:",
+            opcoes: ["2-bromo-3,4-dimetil-pentano", "3-bromo-2,3-dimetil-pentano", "3-bromo-3-etil-pentano", "4-bromo-2,3-dimetil-pentano"],
+            correta: 1,
+            explicacao: "Pela regra de Markovnikov, o Br liga-se ao carbono mais substituído da dupla ligação (C3). Renumerando a cadeia para obter os menores localizadores possíveis, o produto chama-se 3-bromo-2,3-dimetilpentano."
+          },
+          {
+            enunciado: "A respeito de uma série de hidrocarbonetos aromáticos (benzeno, metilbenzeno, 1,2-dimetilbenzeno e 1,3,5-trimetilbenzeno), indique qual das afirmações é falsa:",
+            opcoes: [
+              "são todos aromáticos",
+              "pertencem todos à mesma série homóloga",
+              "possuem a mesma fórmula mínima (CH)n",
+              "são chamados respectivamente: benzeno; metilbenzeno; 1,2-dimetilbenzeno; 1,3,5-trimetilbenzeno"
+            ],
+            correta: 2,
+            explicacao: "Só o benzeno (C6H6) tem fórmula mínima exactamente CH (razão 1:1). Os restantes (C7H8, C8H10, C9H12) não reduzem a essa proporção simples, pelo que a afirmação sobre a fórmula mínima comum é falsa."
+          },
+          {
+            enunciado: "A única das aminas abaixo que pode produzir álcool ao reagir com HNO2 é:",
+            opcoes: ["C6H5NH2", "(CH3)2NH", "CH3-NH2", "(CH3)3N"],
+            correta: 2,
+            explicacao: "Uma amina primária alifática, como o CH₃NH₂, reage com HNO₂ formando um sal de diazónio instável que se decompõe libertando N₂ e formando um álcool. As aminas aromáticas primárias formam sais de diazónio mais estáveis; as aminas secundárias e terciárias não seguem esse mesmo caminho de reacção."
+          },
+          {
+            enunciado: "Os plásticos constituem uma classe de materiais que confere conforto ao homem. Do ponto de vista da química, os plásticos e suas unidades constituintes são, respectivamente:",
+            opcoes: ["hidrocarbonetos; péptidos", "polímeros; monómeros", "polímeros; proteínas", "proteínas; aminoácidos"],
+            correta: 1,
+            explicacao: "Os plásticos são polímeros, macromoléculas formadas pela repetição de unidades mais pequenas chamadas monómeros."
+          },
+          {
+            enunciado: "Substituindo-se os hidrogénios da água por radicais metil e fenil obtém-se:",
+            opcoes: ["aldeido", "éter", "ester", "amina"],
+            correta: 1,
+            explicacao: "Substituir os dois hidrogénios da água (H-O-H) por dois grupos orgânicos (metil e fenil) dá origem a um éter (R-O-R'), neste caso o anisol (CH₃-O-C₆H₅)."
+          },
+          {
+            enunciado: "Um alcano monoclorado (0,925 g) reage com excesso de solução alcoólica de nitrato de prata, formando 1,435 g de cloreto de prata. A fórmula bruta do composto será:",
+            opcoes: ["C2H5Cl", "C3H7Cl", "CH3Cl", "C4H9Cl"],
+            correta: 3,
+            explicacao: "Moles de AgCl = 1,435/143,5=0,01mol, iguais às moles do alcano monoclorado (1 Cl por molécula). Massa molar = 0,925/0,01=92,5 g/mol, correspondendo ao C4H9Cl (M=92,5)."
+          },
+          {
+            enunciado: "A solubilidade de fosfato de cálcio, Ca3(PO4)2 em água pura é 7,14×10-7mol.dm-3. O produto de solubilidade deste sal será igual a:",
+            opcoes: ["2,0×10-29", "9,65×10-35", "4,15×10-24", "1,33×10-29"],
+            correta: 0,
+            explicacao: "Ca₃(PO₄)₂⇌3Ca²⁺+2PO₄³⁻. Com s=7,14×10⁻⁷: [Ca²⁺]=3s, [PO₄³⁻]=2s. Ksp=(3s)³(2s)²=108s⁵≈108×(7,14×10⁻⁷)⁵≈2,0×10⁻²⁹."
+          },
+          {
+            enunciado: "A 25°C adicionaram-se 75 cm3 de solução aquosa de 0,050 M de Mg(NO3)2 a 25 cm3 de solução aquosa de NaOH também 0,050 M. Ks = 1,8×10-11. Prevê-se que:",
+            opcoes: [
+              "haverá formação de precipitado de Mg(OH)2",
+              "haverá formação de precipitado de NaNO3",
+              "haverá formação de precipitado de Mg(NO3)2",
+              "não haverá formação de precipitado"
+            ],
+            correta: 0,
+            explicacao: "Após misturar (volume total 100mL): [Mg²⁺]=0,0375M, [OH⁻]=0,0125M. O produto iónico Q=[Mg²⁺][OH⁻]²=0,0375×0,0125²≈5,86×10⁻⁶, muito superior ao Ks=1,8×10⁻¹¹, pelo que precipita Mg(OH)₂."
+          },
+          {
+            enunciado: "Tem-se uma solução saturada de CaF2 a 25°C. Qual é a concentração de Ca2+ e F- quando não há presença de outra substância? Kps = 3,95×10-11.",
+            opcoes: [
+              "Ca2+ = 2,15×10-4 mol.dm-3 e F- = 4,3×10-4 mol.dm-3",
+              "Ca2+ = 4,3×10-4 mol.dm-3 e F- = 2,15×10-4 mol.dm-3",
+              "Ca2+ = 2,15×10-3 mol.dm-3 e F- = 4,3×10-3 mol.dm-3",
+              "Ca2+ = 4,3×10-3 mol.dm-3 e F- = 2,15×10-3 mol.dm-3"
+            ],
+            correta: 0,
+            explicacao: "CaF₂⇌Ca²⁺+2F⁻. Com s=[Ca²⁺] e [F⁻]=2s: Ksp=s(2s)²=4s³=3,95×10⁻¹¹ → s³≈9,875×10⁻¹² → s≈2,15×10⁻⁴M. Logo [Ca²⁺]≈2,15×10⁻⁴ e [F⁻]≈4,3×10⁻⁴."
+          },
+          {
+            enunciado: "Na tabela a seguir estão as solubilidades em n-hexano e água de cinco compostos diferentes. Destes dados conclui-se que a ordem decrescente de polaridade é:",
+            opcoes: ["5; 2; 3; 1; 4", "1; 4; 3; 2; 5", "5; 2; 3; 4; 1", "1; 4; 3; 5; 2"],
+            correta: 2,
+            explicacao: "O composto 5 (só solúvel em água, mais solúvel) é o mais polar, seguido do 2 (só solúvel em água), depois o 3 (solúvel em ambos). Os compostos 4 e 1 (só solúveis em hexano) são os mais apolares, sendo o 1 (mais solúvel em hexano) o menos polar de todos. Ordem: 5, 2, 3, 4, 1."
+          },
+          {
+            enunciado: "Se o líquido Q for um solvente polar e o líquido R um não polar, deve-se esperar que:",
+            opcoes: [
+              "Ambos sejam imiscíveis com um outro liquido T",
+              "Ambos sejam miscíveis entre si",
+              "Nenhum deles seja miscível com CCl4",
+              "O líquido Q seja miscível com água"
+            ],
+            correta: 3,
+            explicacao: "Pelo princípio 'semelhante dissolve semelhante', um solvente polar (Q) é geralmente miscível com a água (também polar). Solventes polares e apolares tendem a ser imiscíveis entre si."
+          },
+          {
+            enunciado: "O coeficiente de solubilidade do sulfato de cobre a 30°C é igual a 25g em 100 g de água. Qual é a fracção em massa (% mass.) deste sal na sua solução saturada à mesma temperatura?",
+            opcoes: ["10", "15", "20", "25"],
+            correta: 2,
+            explicacao: "Massa total da solução saturada = 100g (água) + 25g (sal) = 125g. Fracção em massa = 25/125×100=20%."
+          }
+        ]
+      },
+      {
+        id: "uem-quimica-2007",
+        disciplina: "Química",
+        ano: 2007,
+        duracaoMinutos: 120,
+        instrucoes: [
+          "Exame com 4 alternativas por questão (A a D), estando correcta apenas uma.",
+          "Preenche as respostas com atenção; a folha óptica anula questões com mais de uma resposta.",
+          "O cronómetro inicia assim que carregares em \"Iniciar Simulação\".",
+          "4 perguntas do enunciado original (nºs 10, 37, 42 e 51) foram excluídas por dependerem de um gráfico não totalmente legível no scan, ou por ambiguidade/inconsistência nos dados e nas opções.",
+          "No final poderás descarregar a correção completa em PDF."
+        ],
+        questoes: [
+          {
+            enunciado: "Os números de protões, neutrões e electrões da espécie X2+, sabendo que X é isótopo da espécie ₈₂Y²¹⁰ e isótono da espécie ₈₄Z²¹⁴, são, respectivamente, iguais a:",
+            opcoes: ["84, 214 e 84", "80, 214 e 82", "82, 128 e 80", "82, 130 e 80"],
+            correta: 3,
+            explicacao: "X é isótopo de Y, logo tem o mesmo Z=82 protões. Z tem 214-84=130 neutrões, e X é isótono de Z (mesmo nº de neutrões=130). Assim X tem 82 protões e 130 neutrões. Como X²⁺ perdeu 2 electrões, tem 82-2=80 electrões."
+          },
+          {
+            enunciado: "Dados os seguintes átomos hipotéticos ₉₀X²³³; ₐYᵇ e ᶜZᵈ. Sabendo que o átomo Z tem 144 neutrões, é isótopo de X e isóbaro de Y, e que o átomo Y é isótono de X; então o átomo Y deve ter:",
+            opcoes: ["90 protões", "91 protões", "143 protões", "142 protões"],
+            correta: 1,
+            explicacao: "X tem 233-90=143 neutrões. Z é isótopo de X (Z=90 protões) com 144 neutrões, logo massa de Z=234. Y é isóbaro de Z, logo massa de Y=234. Y é isótono de X (143 neutrões). Logo protões de Y = 234-143=91."
+          },
+          {
+            enunciado: "São dados três átomos genéricos \"A\", \"B\" e \"C\". O átomo \"A\" tem número atómico 70 e número de massa 160. O átomo \"C\" tem 94 neutrões, sendo isótopo de \"A\". O átomo \"B\" é isóbaro de \"C\" e isótono de \"A\". O número de electrões do átomo \"B\" é:",
+            opcoes: ["160", "70", "74", "78"],
+            correta: 2,
+            explicacao: "C é isótopo de A (Z=70) com 94 neutrões, logo massa de C = 70+94=164. B é isóbaro de C (massa=164) e isótono de A (neutrões de A=160-70=90). Logo protões de B = 164-90=74, igual ao número de electrões (átomo neutro)."
+          },
+          {
+            enunciado: "Os números de oxidação do enxofre nas substâncias S8, H2S, H2SO3, H2SO4 e SCl2 são, respectivamente:",
+            opcoes: ["-2, +4, 0, +6, +2", "0, +6, +4, +6, +2", "0, -2, +4, +6, +2", "+2, 0, +4, +6, -2"],
+            correta: 2,
+            explicacao: "S8 é enxofre elementar, nox=0. H2S: nox(S)=-2. H2SO3: nox(S)=+4. H2SO4: nox(S)=+6. SCl2: sendo o Cl mais electronegativo, nox(S)=+2."
+          },
+          {
+            enunciado: "São feitas as afirmações seguintes, com referência ao elemento flúor: I - O flúor é um halogénio. II - O flúor localiza-se no segundo período da tabela periódica. III - O flúor é menos electronegativo do que o cloro. IV - O flúor tem propriedades similares às do cloro. São correctas as afirmações:",
+            opcoes: ["I, II e III", "II, III e IV", "I, II e IV", "I, III e IV"],
+            correta: 2,
+            explicacao: "O flúor é de facto um halogénio (I) do 2º período (II), e tem propriedades químicas semelhantes às do cloro por pertencerem ao mesmo grupo (IV). A afirmação III é falsa: o flúor é o elemento MAIS electronegativo de todos, mais até do que o cloro."
+          },
+          {
+            enunciado: "Assinale a alternativa que não é correcta: A) o nº máximo de electrões em cada orbital é dois. B) no nível quântico principal quatro, há 16 orbitais. C) no subnível 5f, há 7 orbitais. D) 5,1,0,-1/2 são os quatro números quânticos de electrões de maior energia de um átomo de elemento que pertence ao grupo IA da tabela periódica.",
+            opcoes: [
+              "O nº máximo de electrões em cada orbital é dois",
+              "No nível quântico principal quatro, há 16 orbitais",
+              "No subnível 5f, há 7 orbitais",
+              "5,1,0,-1/2 são os números quânticos de um elemento do grupo IA"
+            ],
+            correta: 3,
+            explicacao: "As afirmações A, B e C são correctas (regras gerais de números quânticos). A afirmação D está errada: um elemento do grupo IA tem configuração de valência ns¹ (subnível s, l=0), mas os números quânticos indicados têm l=1 (subnível p), o que é incompatível com um metal alcalino."
+          },
+          {
+            enunciado: "Considere a equação: 2N2O5(g) → 4NO2(g) + O2(g). Admita que a formação do O2 tem uma velocidade média constante igual a 0,05 mol/l.s. A massa de NO2 formada em 1 minuto é:",
+            opcoes: ["96 g", "55,2 g", "12,0 g", "552,0 g"],
+            correta: 3,
+            explicacao: "Em 60s, formam-se 0,05×60=3 mol/L de O2. Pela estequiometria (4NO2:1O2), formam-se 4×3=12 mol de NO2. Massa = 12×46=552g."
+          },
+          {
+            enunciado: "Mediu-se o grau de conductibilidade eléctrica de volumes iguais de duas soluções aquosas, uma do ácido HA e outra do ácido HB. A solução do HA apresentou intensidade de luz mais intensa, e a do HB mais fraca. De acordo com estes resultados, as soluções HA e HB podem ser respectivamente:",
+            opcoes: ["CH3COOH 0,1M e CH3COOH 0,1M", "CH3COOH 0,1M e H2SO4 0,1M", "HCl 0,1M e CH3COOH 0,1M", "HCl 0,01M e CH3COOH 0,1M"],
+            correta: 2,
+            explicacao: "Uma conductibilidade mais intensa indica mais iões livres, ou seja, um ácido mais forte. À mesma concentração, o HCl (ácido forte, totalmente ionizado) conduz muito mais do que o CH₃COOH (ácido fraco, pouco ionizado)."
+          },
+          {
+            enunciado: "Dada a equação da reacção em fase gasosa 2NO(g)+O2(g)→2NO2(g), mediram-se as velocidades iniciais e concluiu-se que quando a concentração inicial do NO triplicou (O2 constante), a velocidade inicial aumentou nove vezes; quando a concentração inicial de O2 se reduziu à metade (NO constante), a velocidade inicial também se reduziu à metade. A expressão da lei de velocidade para esta equação é:",
+            opcoes: ["v = K[NO]²·[O2]", "v = K[O2]²·[NO]", "v = K[NO²]·[O2²]", "v = K[NO]·[O2]"],
+            correta: 0,
+            explicacao: "Triplicar [NO] aumenta a velocidade 9 vezes (3²=9), indicando ordem 2 em relação ao NO. Reduzir [O2] a metade reduz a velocidade a metade, indicando ordem 1 em relação ao O2. Logo v=k[NO]²[O2]."
+          },
+          {
+            enunciado: "A expressão da lei da velocidade para a decomposição do pentóxido de dinitrogénio, 2N2O5(g)→4NO2(g)+O2(g), que segue o mecanismo: (i) N2O5(g)→NO2(g)+NO3(g) (lenta); (ii) NO3(g)→NO(g)+O2(g) (rápida); (iii) NO(g)+N2O5(g)→NO2(g)+N2O4(g) (rápida); (iv) N2O4(g)→2NO2(g) (rápida) é:",
+            opcoes: ["v = k[N2O5]²", "v = k[N2O5]", "v = k[NO3]", "v = k[N2O4]"],
+            correta: 1,
+            explicacao: "A lei de velocidade de uma reacção com mecanismo em várias etapas é determinada pela etapa mais lenta (etapa determinante). A etapa (i) é a lenta e envolve apenas N2O5, logo v=k[N2O5]."
+          },
+          {
+            enunciado: "A expressão da lei da velocidade para a reacção 2ICl(g)+H2(g)→I2(s)+2HCl(g), a partir dos dados experimentais recolhidos, é:",
+            opcoes: ["v = k[ICl]²[H2]", "v = k[I2][HCl]²", "v = k[ICl][H2]", "v = k[ICl]²[H2][HCl]"],
+            correta: 2,
+            explicacao: "Comparando as experiências: duplicar [H2] duplica a velocidade (ordem 1 em H2); duplicar [ICl] (mantendo [H2]) também duplica a velocidade (ordem 1 em ICl). Logo v=k[ICl][H2]."
+          },
+          {
+            enunciado: "Num recipiente de 4,0 litros estão em equilíbrio os gases SO2, O2 e SO3. As quantidades presentes no estado de equilíbrio são 0,64 mol, 0,28 mol e 0,56 mol, respectivamente. O equilíbrio neste sistema encontra-se:",
+            opcoes: ["À direita porque Keq>1", "À direita porque Keq<1", "À esquerda porque Keq>1", "À esquerda porque Keq<1"],
+            correta: 0,
+            explicacao: "Convertendo para concentrações (÷4L): [SO2]=0,16, [O2]=0,07, [SO3]=0,14. Kc=[SO3]²/([SO2]²[O2])=(0,14)²/((0,16)²×0,07)≈10,9. Como Kc>>1, o equilíbrio está deslocado para a direita (favorece os produtos)."
+          },
+          {
+            enunciado: "Considere o equilíbrio 2NO2(g) ⇌ N2O4(g) + nKj (vermelho ⇌ incolor). A cor vermelha aumenta de intensidade quando:",
+            opcoes: ["Se aumenta a temperatura e a pressão", "Se aumenta a temperatura e diminui a pressão", "Se diminui a temperatura e a pressão", "Se diminui a temperatura e aumenta a pressão"],
+            correta: 1,
+            explicacao: "A formação de N2O4 (incolor) é exotérmica. Aumentar a temperatura desloca o equilíbrio para a esquerda (mais NO2, mais vermelho). Diminuir a pressão favorece o lado com mais moles de gás (NO2, 2 moles vs 1 de N2O4), também aumentando a cor vermelha."
+          },
+          {
+            enunciado: "Sabendo que a solubilidade de CaCO3 a 298K é 9,33×10⁻⁵ M, o seu Kps é:",
+            opcoes: ["4,70×10-10 M2", "1,59×10-13 M", "8,7×10-9 M2", "0,59×10-10 M"],
+            correta: 2,
+            explicacao: "CaCO3⇌Ca2++CO3²⁻. Kps=[Ca²⁺][CO3²⁻]=s²=(9,33×10⁻⁵)²≈8,7×10⁻⁹."
+          },
+          {
+            enunciado: "Sabendo que lg 2 = 0,3010, o valor do pH de uma solução de HCl a 2×10⁻¹ M é:",
+            opcoes: ["13,3", "0,69", "0,56", "0,4"],
+            correta: 1,
+            explicacao: "[H+]=0,2M. pH=-log(0,2)=-log(2×10⁻¹)=1-log2=1-0,301=0,699≈0,69."
+          },
+          {
+            enunciado: "O valor de Ka do CH3COOH a 25°C é igual a 1,7×10⁻⁵ M. O valor de Kb do CH3COO- é:",
+            opcoes: ["1,9×10-8 M", "1,0×10-14 M", "5,9×10-10 M", "1,4×10-2 M"],
+            correta: 2,
+            explicacao: "Usando Kw=Ka×Kb: Kb=10⁻¹⁴/1,7×10⁻⁵≈5,9×10⁻¹⁰."
+          },
+          {
+            enunciado: "Ao realizar-se a reacção H+(aq) + HS-(aq) ⇌ H2S(aq), verificou-se que, no equilíbrio, [H2S] = 0,8 mol/l e [HS-] = 0,2 mol/l. O valor da constante de equilíbrio na temperatura em que a experiência foi realizada é K = 1,0×10⁷. Nas condições da experiência, [H+] em mol/l é:",
+            opcoes: ["1,6×10-8", "4,0×10-7", "2,5×106", "2,0×107"],
+            correta: 1,
+            explicacao: "K=[H2S]/([H+][HS-]) → [H+]=[H2S]/(K×[HS-])=0,8/(1,0×10⁷×0,2)=4,0×10⁻⁷."
+          },
+          {
+            enunciado: "A lei de Boyle-Mariotte (PV=const.) não é obedecida no caso da mistura gasosa em equilíbrio químico N2+3H2 ⇌ 2NH3, em temperatura elevada constante, porque:",
+            opcoes: [
+              "NH3 não é uma substância simples",
+              "o equilíbrio químico é independente da pressão",
+              "a massa em gramas não permanece constante",
+              "o nº de moles varia com a pressão"
+            ],
+            correta: 3,
+            explicacao: "Como o equilíbrio se desloca com a alteração da pressão, o número total de moles de gás varia, deixando de se cumprir a relação simples PV=constante (válida apenas para uma quantidade fixa de gás)."
+          },
+          {
+            enunciado: "Com relação à reacção: 2A + 3B → 2C + D pode-se afirmar que:",
+            opcoes: [
+              "os reagentes \"A\" e \"B\" são consumidos com a mesma velocidade",
+              "a velocidade de desaparecimento de \"A\" é igual à velocidade de aparecimento de \"C\"",
+              "os produtos \"C\" e \"D\" são formados com a mesma velocidade",
+              "a velocidade de aparecimento de \"D\" é três vezes maior do que a velocidade de desaparecimento de \"B\""
+            ],
+            correta: 1,
+            explicacao: "A e C têm o mesmo coeficiente estequiométrico (2), pelo que a velocidade de desaparecimento de A é igual à velocidade de aparecimento de C. As outras relações não respeitam a proporcionalidade correcta dos coeficientes."
+          },
+          {
+            enunciado: "Na reacção representada pela equação: ½A2 + B → AB, verificou-se que, 480 segundos após o seu início, a concentração de A2 era de 0,1 moles/l. Sabendo que a concentração inicial de A2 era de 1,1 moles/l, a velocidade média da reacção será:",
+            opcoes: ["2,0×10-3 moles/l/s", "4,0×10-3 moles/l/s", "2,0×10-2 moles/l/s", "4,0×10-2 moles/l/s"],
+            correta: 1,
+            explicacao: "Consumo de A2 = 1,1-0,1=1,0 mol/l em 480s, ou seja 1,0/480≈2,08×10⁻³ mol/l/s. Dividindo pelo coeficiente estequiométrico de A2 (½), a velocidade da reacção é o dobro: ≈4,0×10⁻³ mol/l/s."
+          },
+          {
+            enunciado: "A molaridade de uma solução de HNO3 cuja concentração dos iões OH- é de 5,0×10⁻¹² M a 25°C é:",
+            opcoes: ["6×10-4 M", "2×10-3 M", "4×10-1 M", "2×10-1 M"],
+            correta: 1,
+            explicacao: "Kw=[H+][OH-]=10⁻¹⁴ → [H+]=10⁻¹⁴/5,0×10⁻¹²=2×10⁻³M. Como o HNO3 é um ácido monoprótico forte, a molaridade é igual a [H+]=2×10⁻³M."
+          },
+          {
+            enunciado: "Sabendo que a solubilidade do PbBr2 a 25°C é igual a 1,32×10⁻² o valor de Kps é:",
+            opcoes: ["6,3×10-6", "0,92×10-4", "9,2×10-6", "4,1×10-2"],
+            correta: 2,
+            explicacao: "PbBr2⇌Pb2++2Br-. Kps=s(2s)²=4s³=4×(1,32×10⁻²)³≈9,2×10⁻⁶."
+          },
+          {
+            enunciado: "O coeficiente térmico da velocidade de uma dada reacção é igual a 2,8. Quantas vezes altera a velocidade da reacção quando a temperatura passa de 20°C para 75°C?",
+            opcoes: ["Aumenta 287 vezes", "Diminui 287 vezes", "Aumenta 15,4 vezes", "Diminui 15,4 vezes"],
+            correta: 0,
+            explicacao: "A variação de temperatura é 55°C, ou seja, 5,5 intervalos de 10°C. O factor de alteração é 2,8^5,5≈287 vezes, um aumento (a velocidade das reacções aumenta com a temperatura)."
+          },
+          {
+            enunciado: "À temperatura ambiente, a energia de activação de uma certa reacção é diminuída em 4,00KJ/mol. Sabendo que R=8,314 J·mol⁻¹·K⁻¹, a velocidade da reacção é:",
+            opcoes: ["Aumentada 4 vezes", "Diminuída 4 vezes", "Aumentada 5 vezes", "Diminuída 19 vezes"],
+            correta: 2,
+            explicacao: "Pela equação de Arrhenius, reduzir a energia de activação em 4000J/mol a 298K multiplica a constante de velocidade por exp(4000/(8,314×298))=exp(1,615)≈5, ou seja, a velocidade aumenta cerca de 5 vezes."
+          },
+          {
+            enunciado: "As semi-equações I: Fe→Fe²⁺+2e⁻; II: Cl2+2e⁻→2Cl⁻ representam, respectivamente, semi-reacções de:",
+            opcoes: ["Oxidação e redução", "Neutralização e redução", "Redução e oxidação", "Esterificação e oxidação"],
+            correta: 0,
+            explicacao: "Na semi-equação I, o ferro perde electrões (oxidação). Na semi-equação II, o cloro molecular ganha electrões (redução)."
+          },
+          {
+            enunciado: "Os nox do P, Cr e Al nos compostos PH3, CrF3 e Al2O3 são respectivamente:",
+            opcoes: ["–3, -3 e +3", "+3, +3 e +3", "–3, +3 e +3", "+3, -3 e –3"],
+            correta: 2,
+            explicacao: "No PH3, o P é convencionalmente mais electronegativo, ficando com nox -3 (H=+1). No CrF3, o F tem sempre -1, logo Cr=+3. No Al2O3, o O tem -2, logo cada Al=+3."
+          },
+          {
+            enunciado: "Considere as semi-reacções cujos potenciais de redução são: 1. A+e⁻→A⁻; E°=-0,24V. 2. B⁻+e⁻→B²⁻; E°=1,25V. 3. C⁻+2e⁻→C³⁻; E°=-1,25V. 4. D+2e⁻→D²⁻; E°=0,68V. 5. E+4e⁻→E⁴⁻; E°=0,38V. Que combinação dessas reacções resultaria numa célula electroquímica com o maior potencial?",
+            opcoes: ["1 e 3", "2 e 3", "2 e 5", "4 e 5"],
+            correta: 1,
+            explicacao: "O potencial máximo da pilha é obtido combinando o par com maior E° de redução (2, +1,25V, como cátodo) com o par de menor E° de redução (3, -1,25V, invertido como ânodo). E°célula=1,25-(-1,25)=2,50V, o maior possível entre as combinações."
+          },
+          {
+            enunciado: "Num frasco de Erlenmeyer contendo uma solução aquosa 1,0 molar de nitrato férrico introduz-se uma lâmina de ferro, lixada e limpa. Fecha-se o frasco com uma válvula que impede o acesso de ar, mas permite a saída de gases. Assinale a opção que contém a afirmação certa em relação ao que ocorrerá no frasco:",
+            opcoes: [
+              "a lâmina de ferro ganhará massa",
+              "a cor da solução mudará de verde para castanha",
+              "a presença de ferro não irá alterar a solução",
+              "a lâmina de ferro perderá massa"
+            ],
+            correta: 3,
+            explicacao: "Ocorre a reacção Fe + 2Fe³⁺ → 3Fe²⁺, em que o ferro metálico se dissolve (reduz o Fe³⁺). A lâmina perde massa à medida que se dissolve na solução, transformando o ferro sólido em iões Fe²⁺ dissolvidos."
+          },
+          {
+            enunciado: "Dada a equação de uma reacção redox Zn+Cu²⁺⇌Zn²⁺+Cu. Os eléctrodos envolvidos são:",
+            opcoes: ["Zn/Zn2+ e Cu/Cu2+", "Zn/Cu2+ e Cu/Zn2+", "Zn/Cu e Zn2+/Cu2+", "Zn/Zn2+ e Cu/Zn"],
+            correta: 0,
+            explicacao: "Cada eléctrodo é definido pelo seu par redox: o eléctrodo de zinco corresponde ao par Zn/Zn²⁺, e o eléctrodo de cobre ao par Cu/Cu²⁺."
+          },
+          {
+            enunciado: "A reacção 4H3PO3 → 3H3PO4 + PH3 classifica-se como sendo uma reacção de:",
+            opcoes: ["Combinação", "Combustão", "Desproporcionamento", "Desintegração"],
+            correta: 2,
+            explicacao: "O fósforo, com nox +3 no H3PO3, é simultaneamente oxidado a +5 (no H3PO4) e reduzido a -3 (no PH3). Quando o mesmo elemento se oxida e reduz simultaneamente na mesma reacção, chama-se desproporcionamento (ou dismutação)."
+          },
+          {
+            enunciado: "Na reacção Zn+Cu²⁺⇌Zn²⁺+Cu, o redutor e o oxidante são respectivamente:",
+            opcoes: ["Zn2+ e Cu2+", "Cu2+ e Zn2+", "Cu2+ e Zn", "Zn e Cu2+"],
+            correta: 3,
+            explicacao: "O zinco perde electrões (oxida-se), sendo por isso o agente redutor. O Cu²⁺ ganha electrões (reduz-se), sendo o agente oxidante."
+          },
+          {
+            enunciado: "Analisando o composto CH3-CH2-CH(CH3)-CH(C2H5)-CH[CH(CH3)2]-C(CH3)=CH-CH3. Verifica-se que os radicais ligados aos carbonos 3 e 4 da cadeia principal são respectivamente:",
+            opcoes: ["isopropil e metil", "metil e etil", "metil e isopropil", "etil e isopropil"],
+            correta: 1,
+            explicacao: "Numerando a cadeia principal a partir da esquerda, o carbono 3 tem ligado um grupo metilo (CH3) e o carbono 4 tem ligado um grupo etilo (C2H5)."
+          },
+          {
+            enunciado: "O composto orgânico (ciclo-hexano com um grupo cetona e um cloro na posição 3) recebe o nome sistemático de:",
+            opcoes: ["éter m-cloro benzóico", "1-cloro, 3-ceto-ciclohexano", "3-cloro, 1-epoxi-ciclohexeno", "3-cloro ciclohexanona"],
+            correta: 3,
+            explicacao: "A estrutura representa um anel ciclo-hexânico com um grupo cetona (numerado como carbono 1) e um substituinte cloro na posição 3, correspondendo ao nome sistemático 3-cloro ciclohexanona."
+          },
+          {
+            enunciado: "O etanol utilizado como combustível em automóveis pode ser substituído por metanol. A combustão completa desses álcoois produz os mesmos compostos. No entanto, as oxidações parciais e a combustão incompleta produzem outros compostos. Os produtos da oxidação do metanol são:",
+            opcoes: ["monóxido de carbono e dióxido de carbono", "carbono e gás carbónico", "aldeído acético e ácido acético", "metanal e ácido metanóico"],
+            correta: 3,
+            explicacao: "A oxidação parcial e gradual do metanol (CH3OH) segue a sequência: metanol → metanal (formaldeído) → ácido metanóico (ácido fórmico), sendo estes os dois produtos característicos da oxidação parcial deste álcool."
+          },
+          {
+            enunciado: "Um álcool hidratado quando tratado com um desidratante (cal virgem, por exemplo) produz:",
+            opcoes: ["álcool desnaturado", "álcool anidro", "acetona", "eteno"],
+            correta: 1,
+            explicacao: "Um desidratante como a cal virgem (CaO) remove a água presente num álcool hidratado, resultando num álcool anidro (sem água)."
+          },
+          {
+            enunciado: "A normalidade de uma solução aquosa de ácido sulfúrico 98% em massa e densidade 1,84Kg/l é igual a:",
+            opcoes: ["18,38", "1,80", "0,038", "36,76"],
+            correta: 3,
+            explicacao: "Massa de solução por litro=1840g. Massa de H2SO4=0,98×1840=1803,2g. Moles=1803,2/98≈18,4mol/L (Molaridade). Como o H2SO4 é diprótico, Normalidade=2×18,4≈36,8, aproximadamente 36,76."
+          },
+          {
+            enunciado: "O pH de uma solução aquosa de ácido fórmico 6,25×10⁻³N, cujo Ka é igual a 1,60×10⁻⁴, é igual a:",
+            opcoes: ["3 –log 6,25 = 2,20", "3", "4 – log 1,6 = 3,80", "1 – log 0,256 = 1,59"],
+            correta: 1,
+            explicacao: "Sendo um ácido monoprótico, [ácido]=6,25×10⁻³M. [H+]=√(Ka×C)=√(1,60×10⁻⁴×6,25×10⁻³)=√(1,0×10⁻⁶)=1,0×10⁻³M. pH=-log(1,0×10⁻³)=3."
+          },
+          {
+            enunciado: "Dissolvendo em água os seguintes sais (i) nitrato de chumbo; (ii) sulfito de sódio; (iii) iodeto de potássio e (iv) carbonato de sódio, as soluções resultantes terão, respectivamente, o seguinte carácter:",
+            opcoes: ["Ácido; básico neutro e básico", "Básico; básico; neutro e neutro", "Ácido; neutro; neutro e ácido", "Ácido; básico básica e básico"],
+            correta: 0,
+            explicacao: "O nitrato de chumbo hidrolisa de forma ácida (base fraca Pb(OH)2). O sulfito de sódio hidrolisa de forma básica (ácido fraco H2SO3). O iodeto de potássio é neutro (ácido e base fortes). O carbonato de sódio hidrolisa de forma básica (ácido fraco H2CO3)."
+          },
+          {
+            enunciado: "O pOH de uma solução resultante da mistura de 50,00ml de uma solução aquosa de HNO3 0,20N com 100,00ml de uma solução de NH4OH a 0,20M (Kb=1,80×10⁻⁵ e pKb=4,75) será igual a:",
+            opcoes: ["14 + log 0,20 = 13,30", "6 – lg 1,20 = 5,92", "11 – log 3,7 = 10,43", "4,75"],
+            correta: 3,
+            explicacao: "Moles HNO3=0,05×0,20=0,01mol; moles NH4OH=0,100×0,20=0,02mol. Após reagirem, restam 0,01mol de NH4OH e formam-se 0,01mol de NH4+, numa proporção 1:1. Pela equação de Henderson-Hasselbalch, pOH=pKb+log(1)=pKb=4,75."
+          },
+          {
+            enunciado: "Dos processos indicados pelas figuras a), b), c) e d), é mais rápido e exotérmico o processo:",
+            opcoes: ["a)", "c)", "d)", "b)"],
+            correta: 0,
+            explicacao: "Um processo mais rápido tem menor energia de activação (barreira mais baixa), e sendo exotérmico, os produtos ficam a um nível de energia mais baixo do que os reagentes. O gráfico a) representa a combinação dessas duas características."
+          },
+          {
+            enunciado: "Nas reacções (não balanceadas) dadas pelas equações abaixo, estão envolvidos, respectivamente, os seguintes números totais de electrões em cada processo: (i) (NH4)2Cr2O7 → N2 + Cr2O3 + H2O; (ii) Na3AsO3 + I2 + H2O → Na3AsO4 + HI; (iii) P + KOH + H2O → PH3 + KH2PO2; (iv) KMnO4 + MnSO4 + 4H2O → MnO2 + K2SO4 + H2SO4",
+            opcoes: ["3; 1; 1 e 3", "3; 1; 1 e 2", "3; 1; 3 e 6", "6; 2; 3 e 6"],
+            correta: 3,
+            explicacao: "(i) Cr(+6→+3, 3e- cada, ×2Cr) e N(-3→0, 3e- cada, ×2N) transferem 6 electrões no total. (ii) As(+3→+5, perde 2e-) e I2(0→-1, ganha 2e-) transferem 2 electrões. (iii) O P desproporciona: 1P ganha 3e- (para PH3) e 3P perdem 1e- cada (para KH2PO2), totalizando 3 electrões. (iv) 2Mn(+7→+4, ganha 3e- cada=6e-) equilibram 3Mn(+2→+4, perde 2e- cada=6e-), totalizando 6 electrões."
+          },
+          {
+            enunciado: "A descoberta da bateria de Lítio foi um grande avanço tecnológico. A partir das semi-reacções: Li+(aq)+e⁻→Li(s) E°=-3,05V; Zn2+(aq)+2e⁻→Zn(s) E°=-0,76V, a afirmação correcta é:",
+            opcoes: [
+              "O Zinco metálico é oxidado espontaneamente na presença do ião Lítio",
+              "O Zinco metálico é um agente redutor mais forte do que o Lítio metálico",
+              "O Lítio metálico é um agente redutor mais forte do que o Zinco metálico",
+              "O ião Lítio e o Zinco metálico, em solução electrolítica, formam uma célula galvânica"
+            ],
+            correta: 2,
+            explicacao: "Quanto mais negativo o potencial padrão de redução, mais forte é o poder redutor da forma metálica correspondente. Sendo o E° do Li+/Li (-3,05V) muito mais negativo do que o do Zn2+/Zn (-0,76V), o lítio metálico é um redutor muito mais forte do que o zinco metálico."
+          },
+          {
+            enunciado: "Das afirmações que se seguem, a que corresponde a um dos postulados do químico russo Butlerov é:",
+            opcoes: [
+              "As propriedades das substâncias são determinadas pelo tipo de átomos, sua quantidade, ordem de ligação na molécula e pela sua influência mútua na molécula",
+              "Uma cadeia é denominada heterocíclica quando o ciclo apresenta além de átomos de Carbono, outros diferentes deste",
+              "Na adição de compostos hidrogenados, o Hidrogénio liga-se ao Carbono mais hidrogenado da ligação dupla",
+              "Uma cadeia homogénea é formada por uma sucessão de apenas átomos de Carbono"
+            ],
+            correta: 0,
+            explicacao: "A teoria da estrutura química de Butlerov postula que as propriedades de uma substância dependem do tipo, quantidade e ordem de ligação dos seus átomos, bem como da sua influência mútua dentro da molécula — este é o princípio fundamental da sua teoria."
+          },
+          {
+            enunciado: "O valor da constante de equilíbrio da reacção: CO(g) + H2O(g) ⇌ CO2(g) + H2(g) é 5,0, a uma determinada temperatura. Uma análise dos gases em equilíbrio resultou nas seguintes quantidades: 0,90 moles de CO, 0,25 moles de H2O e 0,50 moles de H2. O volume total da mistura é de 5,0 litros. O número de moles de CO2 na mistura é:",
+            opcoes: ["0,01", "0,45", "2,25", "5,00"],
+            correta: 2,
+            explicacao: "Como reagentes e produtos têm o mesmo número total de moles de gás (1:1:1:1), o volume cancela-se na expressão de Kc, podendo usar-se directamente as quantidades em mol: Kc=(n_CO2×0,50)/(0,90×0,25)=5,0. Logo n_CO2=5,0×0,225/0,50=2,25 mol."
+          },
+          {
+            enunciado: "O processo de fermentação alcoólica é representado pela equação:",
+            opcoes: ["C12H22O11+H2O→4C3H6O3", "C12H22O11+H2O→C6H12O6+C6H12O6", "C6H12O6→2CO2+2C2H5OH", "C6H12O6→6C+6H2O"],
+            correta: 2,
+            explicacao: "A fermentação alcoólica transforma a glucose em etanol e dióxido de carbono, através da acção de leveduras: C6H12O6 → 2CO2 + 2C2H5OH."
+          },
+          {
+            enunciado: "Da reacção de trimerização do Acetilino, C2H2, obtém-se:",
+            opcoes: ["C7H8", "C9H12", "C8H10", "C6H6"],
+            correta: 3,
+            explicacao: "A trimerização de três moléculas de acetileno (C2H2) forma um anel aromático, o benzeno (C6H6), uma reacção clássica em química orgânica."
+          },
+          {
+            enunciado: "O ácido propanóico reage com NaOH para dar origem ao composto:",
+            opcoes: ["CH3-CH2-COONa", "CH3-CH2-CH2-ONa", "CH2=CHONa-CH3", "CH3CH2COOH+Na"],
+            correta: 0,
+            explicacao: "A reacção de neutralização entre um ácido carboxílico e uma base forte forma um sal orgânico e água: CH3CH2COOH+NaOH→CH3CH2COONa+H2O."
+          },
+          {
+            enunciado: "O ácido fórmico é responsável pela irritação causada na pele humana, provocada pela picada das formigas. Qual das substâncias abaixo poderia ser aplicada na pele, a fim de atenuar esse efeito irritante?",
+            opcoes: ["Mg(OH)2", "C2H5-OH", "NH4Cl", "H3PO4"],
+            correta: 0,
+            explicacao: "O Mg(OH)2 é uma base fraca e suave (usada em antiácidos), capaz de neutralizar o ácido fórmico sem causar dano adicional à pele. O etanol é neutro e não neutraliza o ácido; o NH4Cl é ligeiramente ácido; e o H3PO4 é ele próprio um ácido, agravando a irritação."
+          },
+          {
+            enunciado: "Das classes de compostos orgânicos abaixo indicadas podem constituir isómeros de função as seguintes:",
+            opcoes: [
+              "Ácidos carboxílicos, seus respectivos ésteres e seus respectivos anidridos",
+              "Dienos, cicloalcenos e alcinos",
+              "Álcoois saturados, éteres saturados e cetonas",
+              "Aldeídos, cetonas e álcoois saturados"
+            ],
+            correta: 1,
+            explicacao: "Os dienos, os cicloalcenos e os alcinos partilham exactamente a mesma fórmula molecular geral, CnH2n-2, sendo por isso isómeros de função entre si (mesma fórmula, funções/grupos diferentes)."
+          },
+          {
+            enunciado: "Geralmente, o formaldeído usa-se sob a forma de solução aquosa, a formalina, que se aplica como:",
+            opcoes: ["fertilizante", "desinfectante", "solvente", "aditivo alimentar"],
+            correta: 1,
+            explicacao: "A formalina (solução aquosa de formaldeído) é amplamente utilizada como desinfectante e conservante, incluindo na conservação de amostras biológicas."
+          },
+          {
+            enunciado: "Os plásticos de formol obtidos a partir do formaldeído representam uma mistura de:",
+            opcoes: ["resinas formol-fenólicas", "fenol e formaldeído", "ésteres fenólicos", "formalina e formaldeído"],
+            correta: 0,
+            explicacao: "Os plásticos derivados do formaldeído (como a baquelite) são resinas formol-fenólicas, obtidas pela polimerização do formaldeído com fenol."
+          },
+          {
+            enunciado: "Considere a reacção seguinte: 2Cu2+ + 4I- ⇌ 2CuI + 2I2. Cada ião de Cu2+:",
+            opcoes: ["aceita 1 electrão", "cede 1 electrão", "aceita 2 electrões", "cede 2 electrões"],
+            correta: 0,
+            explicacao: "No CuI formado, o cobre tem nox +1 (I=-1). O Cu²⁺ passa de +2 para +1, ou seja, ganha (aceita) 1 electrão, sendo reduzido."
+          },
+          {
+            enunciado: "Um alqueno é um hidrocarboneto cujas moléculas possuem:",
+            opcoes: ["só ligações simples", "uma ligação dupla", "duas ligações duplas", "uma ligação tripla"],
+            correta: 1,
+            explicacao: "Um alceno (alqueno) é definido pela presença de uma ligação dupla carbono-carbono na molécula."
+          },
+          {
+            enunciado: "Os compostos orgânicos que são capazes de reduzir o licor de Fehling e o reagente de Tollens são:",
+            opcoes: ["álcoois e aldeídos", "apenas os aldeídos", "aldeídos e cetonas simples", "apenas as cetonas simples"],
+            correta: 1,
+            explicacao: "Apenas os aldeídos dão resultado positivo (reduzem) com o licor de Fehling e o reagente de Tollens, sendo esta uma reacção característica usada para distinguir aldeídos de cetonas."
+          },
+          {
+            enunciado: "As moléculas dos aldeídos são:",
+            opcoes: [
+              "polares devido à presença do grupo carbonilo",
+              "apolares devido à presença do grupo carbonilo",
+              "polares devido à presença do grupo carboxílico",
+              "apolares devido à presença do grupo carboxílico"
+            ],
+            correta: 0,
+            explicacao: "O grupo carbonilo (C=O), presente nos aldeídos, é fortemente polar devido à diferença de electronegatividade entre o carbono e o oxigénio, tornando a molécula polar."
+          },
+          {
+            enunciado: "Na reacção traduzida pela equação química seguinte: ROH + Metal → RO-Metal+ + ½H2. A reactividade do ROH com o mesmo metal é decrescente na seguinte sequência:",
+            opcoes: [
+              "RCH2OH > CH3OH > R3OH > R2CHOH",
+              "R3OH > R2CHOH > RCH2OH > CH3OH",
+              "CH3OH > RCH2OH > R2CHOH > R3OH",
+              "CH3OH > RCH2OH > R2CHOH < R3OH"
+            ],
+            correta: 2,
+            explicacao: "A reactividade dos álcoois com metais diminui à medida que aumenta o impedimento estéreo do carbono ligado ao grupo OH: metanol (menos impedido) > álcool primário > secundário > terciário (mais impedido, menos reactivo)."
+          },
+          {
+            enunciado: "O formaldeído é muito usado no fabrico de polímeros chamados de:",
+            opcoes: ["Borrachas sintéticas", "Resinas (de rede tridimensional) termofixas", "Polipeptídeos", "Poliesteres, como a \"Terylene\""],
+            correta: 1,
+            explicacao: "O formaldeído é usado na produção de resinas termofixas de rede tridimensional (como as resinas fenol-formaldeído), que endurecem permanentemente após a moldagem, ao contrário dos plásticos termoplásticos."
+          }
+        ]
+      }
+    ]
+      },
+      { id: "teatro", nome: "Teatro", exames: [] }
+    ]
+  },
+  {
+    id: "up",
+    nome: "Universidade Pedagógica",
+    sigla: "UP",
+    disciplinas: [
+      { id: "biologia", nome: "Biologia", exames: [] },
+      { id: "desenho", nome: "Desenho", exames: [] },
+      { id: "filosofia", nome: "Filosofia", exames: [] },
+      { id: "fisica", nome: "Física", exames: [] },
+      { id: "frances", nome: "Francês", exames: [] },
+      { id: "geografia", nome: "Geografia", exames: [] },
+      { id: "historia", nome: "História", exames: [] },
+      { id: "ingles", nome: "Inglês", exames: [] },
+      { id: "matematica", nome: "Matemática", exames: [] },
+      { id: "portugues", nome: "Português", exames: [] },
+      { id: "quimica", nome: "Química", exames: [] }
+    ]
+  },
+  {
+    id: "am",
+    nome: "Academia Militar",
+    sigla: "AM",
+    disciplinas: [
+      { id: "portugues", nome: "Português", exames: [] },
+      { id: "matematica", nome: "Matemática", exames: [] },
+      { id: "fisica", nome: "Física", exames: [] },
+      { id: "geografia", nome: "Geografia", exames: [] },
+      { id: "historia", nome: "História", exames: [] },
+      { id: "desenho", nome: "Desenho", exames: [] }
+    ]
+  },
+  {
+    id: "uz",
+    nome: "Universidade Zambeze",
+    sigla: "UZ",
+    disciplinas: [
+      { id: "biologia", nome: "Biologia", exames: [] },
+      { id: "quimica", nome: "Química", exames: [] },
+      { id: "matematica", nome: "Matemática", exames: [] },
+      { id: "fisica", nome: "Física", exames: [] },
+      { id: "portugues", nome: "Português", exames: [] },
+      { id: "historia", nome: "História", exames: [] },
+      { id: "geografia", nome: "Geografia", exames: [] }
+    ]
+  },
+  {
+    id: "acipol",
+    nome: "Academia de Ciências Policiais",
+    sigla: "ACIPOL",
+    disciplinas: [
+      { id: "historia", nome: "História", exames: [] },
+      { id: "matematica", nome: "Matemática", exames: [] },
+      { id: "portugues", nome: "Português", exames: [] }
+    ]
+  },
+  {
+    id: "iscisa",
+    nome: "Instituto Superior de Ciências de Saúde",
+    sigla: "ISCISA",
+    disciplinas: [
+      { id: "biologia", nome: "Biologia", exames: [] },
+      { id: "quimica", nome: "Química", exames: [] },
+      { id: "fisica", nome: "Física", exames: [] },
+      { id: "portugues", nome: "Português", exames: [] },
+      { id: "matematica", nome: "Matemática", exames: [] },
+      { id: "cultura-geral", nome: "Cultura Geral", exames: [] }
+    ]
+  }
+];
+
+/* ==========================================================
+   ESTADO DA APLICAÇÃO
+   ========================================================== */
+let universidadeAtual = null;
+let disciplinaAtual = null;
+let exameAtual = null;
+let respostas = {};           // { indiceQuestao: indiceOpcaoEscolhida }
+let questaoActualIndex = 0;
+let tempoRestanteSeg = 0;
+let intervaloTimer = null;
+let horaInicioExame = null;
+let tempoTotalUsadoSeg = 0;
+
+/* ==========================================================
+   NAVEGAÇÃO ENTRE TELAS
+   ========================================================== */
+function mostrarTela(id){
+  ["tela-inicio","tela-universidade","tela-disciplina","tela-detalhes","tela-exame","tela-resultados"].forEach(t=>{
+    document.getElementById(t).classList.toggle("hidden", t !== id);
+  });
+  window.scrollTo({top:0, behavior:"instant"});
+  document.getElementById("cronometro-topo").classList.toggle("hidden", id !== "tela-exame");
+}
+
+function iniciais(texto){
+  return texto.split(" ").filter(p => p.length > 2 || p === p.toUpperCase()).slice(0,2).map(p => p[0]).join("").toUpperCase() || texto.slice(0,2).toUpperCase();
+}
+
+function totalExamesUniversidade(u){
+  return u.disciplinas.reduce((soma, d) => soma + d.exames.length, 0);
+}
+
+/* ==========================================================
+   TELA INICIAL — lista de universidades
+   ========================================================== */
+function renderHome(){
+  const lista = document.getElementById("lista-universidades");
+  if(UNIVERSIDADES.length === 0){
+    lista.innerHTML = `<div class="estado-vazio">Ainda não há universidades disponíveis. Envia os nomes para começarmos a adicionar.</div>`;
+    return;
+  }
+  lista.innerHTML = UNIVERSIDADES.map((u, i) => {
+    const numDisciplinasComExame = u.disciplinas.filter(d => d.exames.length > 0).length;
+    return `
+    <div class="cartao-universidade" onclick="abrirUniversidade(${i})">
+      <div class="emblema">${u.sigla || iniciais(u.nome)}</div>
+      <div class="info">
+        <h3>${u.nome}</h3>
+        <div class="meta">
+          <span>📚 ${numDisciplinasComExame} disciplina${numDisciplinasComExame === 1 ? '' : 's'} com exames · ${totalExamesUniversidade(u)} exame${totalExamesUniversidade(u) === 1 ? '' : 's'}</span>
+        </div>
+      </div>
+      <div class="seta">→</div>
+    </div>
+  `;}).join("");
+}
+
+/* ==========================================================
+   TELA DE UNIVERSIDADE — lista de disciplinas
+   ========================================================== */
+function abrirUniversidade(indice){
+  universidadeAtual = UNIVERSIDADES[indice];
+  document.getElementById("uni-emblema").textContent = universidadeAtual.sigla || iniciais(universidadeAtual.nome);
+  document.getElementById("uni-nome").textContent = universidadeAtual.nome;
+  renderDisciplinasLista();
+  mostrarTela("tela-universidade");
+}
+
+function renderDisciplinasLista(){
+  const lista = document.getElementById("lista-disciplinas");
+  if(universidadeAtual.disciplinas.length === 0){
+    lista.innerHTML = `<div class="estado-vazio">Ainda não há disciplinas disponíveis para esta universidade.</div>`;
+    return;
+  }
+  lista.innerHTML = universidadeAtual.disciplinas.map((d, i) => {
+    const temExames = d.exames.length > 0;
+    return `
+    <div class="cartao-disciplina ${temExames ? 'tem-exames' : 'vazia'}" onclick="${temExames ? `abrirDisciplina(${i})` : ''}">
+      <div class="icone">${iniciais(d.nome)}</div>
+      <div class="info">
+        <h3>${d.nome}</h3>
+        <div class="meta">${temExames ? `${d.exames.length} exame${d.exames.length === 1 ? '' : 's'} disponível${d.exames.length === 1 ? '' : 'is'}` : 'Ainda sem exames'}</div>
+      </div>
+      ${temExames ? '<div class="seta">→</div>' : ''}
+    </div>
+  `;}).join("");
+}
+
+/* ==========================================================
+   TELA DE DISCIPLINA — lista de exames
+   ========================================================== */
+function abrirDisciplina(indice){
+  disciplinaAtual = universidadeAtual.disciplinas[indice];
+  document.getElementById("disc-emblema").textContent = iniciais(disciplinaAtual.nome);
+  document.getElementById("disc-universidade-nome").textContent = universidadeAtual.nome;
+  document.getElementById("disc-nome").textContent = disciplinaAtual.nome;
+  renderExamesDaDisciplina();
+  mostrarTela("tela-disciplina");
+}
+
+function renderExamesDaDisciplina(){
+  const lista = document.getElementById("lista-exames");
+  if(disciplinaAtual.exames.length === 0){
+    lista.innerHTML = `<div class="estado-vazio">Ainda não há exames disponíveis para esta disciplina.</div>`;
+    return;
+  }
+  lista.innerHTML = disciplinaAtual.exames.map((ex, i) => `
+    <div class="cartao-exame" onclick="abrirDetalhes(${i})">
+      <div class="disciplina-eyebrow">Exame de Admissão ${ex.ano}</div>
+      <h3>${ex.disciplina}${ex.variante ? ' — ' + ex.variante : ''}</h3>
+      <div class="meta">
+        <span>📅 ${ex.ano}</span>
+        <span>⏱ ${ex.duracaoMinutos} min</span>
+        <span>📝 ${ex.questoes.length} perguntas</span>
+      </div>
+    </div>
+  `).join("");
+}
+
+/* ==========================================================
+   TELA DE DETALHES DO EXAME
+   ========================================================== */
+function abrirDetalhes(indice){
+  exameAtual = disciplinaAtual.exames[indice];
+  document.getElementById("det-universidade").textContent = universidadeAtual.nome + " · " + disciplinaAtual.nome;
+  document.getElementById("det-titulo").textContent = exameAtual.disciplina + (exameAtual.variante ? " — " + exameAtual.variante : "");
+  document.getElementById("det-ano").textContent = "Ano " + exameAtual.ano;
+  document.getElementById("det-duracao").textContent = exameAtual.duracaoMinutos + " minutos";
+  document.getElementById("det-numquestoes").textContent = exameAtual.questoes.length;
+  document.getElementById("det-instrucoes").innerHTML = exameAtual.instrucoes.map(i => `<li>${i}</li>`).join("");
+  mostrarTela("tela-detalhes");
+}
+
+function pedirConfirmacaoInicio(){
+  abrirModal({
+    titulo: "Pronto para começar?",
+    texto: `Terás ${exameAtual.duracaoMinutos} minutos para responder a ${exameAtual.questoes.length} perguntas. O cronómetro não pára. Ao terminar o tempo, o exame é submetido automaticamente.`,
+    botoes: [
+      { texto: "Cancelar", classe: "contorno", accao: fecharModal },
+      { texto: "Iniciar agora", classe: "dourado", accao: () => { fecharModal(); iniciarExame(); } }
+    ]
+  });
+}
+
+/* ==========================================================
+   TELA DE EXAME
+   ========================================================== */
+function iniciarExame(){
+  respostas = {};
+  questaoActualIndex = 0;
+  tempoRestanteSeg = exameAtual.duracaoMinutos * 60;
+  horaInicioExame = Date.now();
+
+  renderTelaExame();
+  mostrarTela("tela-exame");
+
+  clearInterval(intervaloTimer);
+  intervaloTimer = setInterval(tickTimer, 1000);
+  atualizarCronometroVisual();
+}
+
+function tickTimer(){
+  tempoRestanteSeg--;
+  atualizarCronometroVisual();
+  if(tempoRestanteSeg <= 0){
+    clearInterval(intervaloTimer);
+    finalizarExame(true);
+  }
+}
+
+function formatarTempo(seg){
+  const m = Math.floor(seg/60).toString().padStart(2,"0");
+  const s = Math.max(0, seg % 60).toString().padStart(2,"0");
+  return `${m}:${s}`;
+}
+
+function atualizarCronometroVisual(){
+  const el = document.getElementById("texto-cronometro");
+  const wrap = document.getElementById("cronometro-topo");
+  el.textContent = formatarTempo(tempoRestanteSeg);
+  wrap.classList.toggle("alerta", tempoRestanteSeg <= 60 && tempoRestanteSeg > 0);
+}
+
+function renderTelaExame(){
+  const container = document.getElementById("tela-exame");
+  container.innerHTML = `
+    <div class="barra-progresso-wrap">
+      <div class="barra-progresso-texto">
+        <span>${universidadeAtual.nome} · ${exameAtual.disciplina}${exameAtual.variante ? ' — ' + exameAtual.variante : ''}</span>
+        <span id="contagem-respondidas"></span>
+      </div>
+      <div class="barra-progresso"><div id="barra-fill" class="barra-progresso-fill" style="width:0%"></div></div>
+    </div>
+    <div class="navegador-questoes" id="navegador-questoes"></div>
+    <div id="area-questao"></div>
+    <div class="barra-inferior">
+      <button class="btn perigo" onclick="pedirConfirmacaoTerminar()">Terminar Exame</button>
+    </div>
+  `;
+  renderNavegadorQuestoes();
+  renderQuestaoActual();
+}
+
+function renderNavegadorQuestoes(){
+  const nav = document.getElementById("navegador-questoes");
+  nav.innerHTML = exameAtual.questoes.map((q,i) => {
+    let classe = "nav-q";
+    if(i === questaoActualIndex) classe += " atual";
+    else if(respostas[i] !== undefined) classe += " respondida";
+    return `<button class="${classe}" onclick="irParaQuestao(${i})">${i+1}</button>`;
+  }).join("");
+
+  const respondidas = Object.keys(respostas).length;
+  document.getElementById("contagem-respondidas").textContent = `${respondidas}/${exameAtual.questoes.length} respondidas`;
+  document.getElementById("barra-fill").style.width = (respondidas / exameAtual.questoes.length * 100) + "%";
+}
+
+function renderQuestaoActual(){
+  const q = exameAtual.questoes[questaoActualIndex];
+  const area = document.getElementById("area-questao");
+  const letras = ["A","B","C","D","E","F"];
+
+  area.innerHTML = `
+    <div class="cartao-questao">
+      <div class="numero">PERGUNTA ${questaoActualIndex+1} DE ${exameAtual.questoes.length}</div>
+      <div class="enunciado">${q.enunciado}</div>
+      <div class="opcoes">
+        ${q.opcoes.map((op,i) => `
+          <div class="opcao ${respostas[questaoActualIndex] === i ? 'selecionada' : ''}" onclick="selecionarResposta(${i})">
+            <div class="letra">${letras[i]}</div>
+            <div>${op}</div>
+          </div>
+        `).join("")}
+      </div>
+      <div class="navegacao-questao">
+        <button class="btn contorno" ${questaoActualIndex===0 ? 'disabled' : ''} onclick="mudarQuestao(-1)">← Anterior</button>
+        <button class="btn" ${questaoActualIndex===exameAtual.questoes.length-1 ? 'disabled' : ''} onclick="mudarQuestao(1)">Seguinte →</button>
+      </div>
+    </div>
+  `;
+}
+
+function selecionarResposta(indiceOpcao){
+  respostas[questaoActualIndex] = indiceOpcao;
+  renderQuestaoActual();
+  renderNavegadorQuestoes();
+}
+
+function mudarQuestao(delta){
+  questaoActualIndex = Math.min(exameAtual.questoes.length-1, Math.max(0, questaoActualIndex+delta));
+  renderQuestaoActual();
+  renderNavegadorQuestoes();
+}
+
+function irParaQuestao(i){
+  questaoActualIndex = i;
+  renderQuestaoActual();
+  renderNavegadorQuestoes();
+}
+
+function pedirConfirmacaoTerminar(){
+  const totalPerguntas = exameAtual.questoes.length;
+  const respondidas = Object.keys(respostas).length;
+  const faltam = totalPerguntas - respondidas;
+  abrirModal({
+    titulo: "Terminar o exame?",
+    texto: faltam > 0
+      ? `Ainda tens ${faltam} pergunta(s) por responder. Depois de submeter não poderás alterar as respostas.`
+      : `Respondeste a todas as perguntas. Depois de submeter não poderás alterar as respostas.`,
+    botoes: [
+      { texto: "Continuar exame", classe: "contorno", accao: fecharModal },
+      { texto: "Submeter agora", classe: "dourado", accao: () => { fecharModal(); finalizarExame(false); } }
+    ]
+  });
+}
+
+function finalizarExame(porTempoEsgotado){
+  clearInterval(intervaloTimer);
+  tempoTotalUsadoSeg = Math.round((Date.now() - horaInicioExame) / 1000);
+  renderResultados(porTempoEsgotado);
+  mostrarTela("tela-resultados");
+}
+
+/* ==========================================================
+   MODAL GENÉRICO
+   ========================================================== */
+function abrirModal({titulo, texto, botoes}){
+  const area = document.getElementById("area-modal");
+  area.innerHTML = `
+    <div class="modal-fundo" id="modal-fundo">
+      <div class="modal">
+        <h3>${titulo}</h3>
+        <p>${texto}</p>
+        <div class="acoes" id="modal-acoes"></div>
+      </div>
+    </div>
+  `;
+  const acoesEl = document.getElementById("modal-acoes");
+  botoes.forEach(b => {
+    const btn = document.createElement("button");
+    btn.className = "btn " + b.classe;
+    btn.textContent = b.texto;
+    btn.onclick = b.accao;
+    acoesEl.appendChild(btn);
+  });
+}
+function fecharModal(){
+  document.getElementById("area-modal").innerHTML = "";
+}
+
+/* ==========================================================
+   TELA DE RESULTADOS
+   ========================================================== */
+function renderResultados(porTempoEsgotado){
+  const total = exameAtual.questoes.length;
+  let certas = 0;
+  exameAtual.questoes.forEach((q,i) => { if(respostas[i] === q.correta) certas++; });
+  const percentagem = Math.round((certas/total)*100);
+  const erradas = total - certas;
+
+  const container = document.getElementById("tela-resultados");
+  const letras = ["A","B","C","D","E","F"];
+
+  container.innerHTML = `
+    <div class="resumo-resultado">
+      <div class="universidade">${universidadeAtual.nome} · ${exameAtual.disciplina}${exameAtual.variante ? ' — ' + exameAtual.variante : ''}</div>
+      <div class="nota">${percentagem}%</div>
+      <div class="fracao">${certas} de ${total} perguntas certas</div>
+      <div class="selo">${porTempoEsgotado ? "Tempo esgotado — exame submetido automaticamente" : "Exame submetido"}</div>
+    </div>
+
+    <div class="estatisticas-rapidas">
+      <div class="item certas"><div class="valor">${certas}</div><div class="rotulo">Certas</div></div>
+      <div class="item erradas"><div class="valor">${erradas}</div><div class="rotulo">Erradas</div></div>
+      <div class="item tempo"><div class="valor">${formatarTempo(tempoTotalUsadoSeg)}</div><div class="rotulo">Tempo usado</div></div>
+    </div>
+
+    <div class="acoes-resultado">
+      <button class="btn dourado" onclick="gerarPDF()">⬇ Baixar Correção Completa em PDF</button>
+      <button class="btn contorno" onclick="mostrarTela('tela-disciplina'); renderExamesDaDisciplina();">Escolher outro exame desta disciplina</button>
+      <button class="btn contorno" onclick="mostrarTela('tela-universidade'); renderDisciplinasLista();">Ver outras disciplinas</button>
+      <button class="btn contorno" onclick="mostrarTela('tela-inicio'); renderHome();">Voltar às Universidades</button>
+    </div>
+
+    <div class="correcao">
+      <h3>Correção detalhada</h3>
+      ${exameAtual.questoes.map((q,i) => {
+        const respostaUser = respostas[i];
+        const acertou = respostaUser === q.correta;
+        return `
+          <div class="item-correcao ${acertou ? 'certa' : 'errada'}">
+            <div class="cabecalho-item">
+              <span class="numero">PERGUNTA ${i+1}</span>
+              <span class="tag-resultado ${acertou ? 'certa' : 'errada'}">${acertou ? 'Certa' : 'Errada'}</span>
+            </div>
+            <div class="enunciado">${q.enunciado}</div>
+            ${respostaUser === undefined
+              ? `<div class="linha-resposta sua-errada"><span class="rotulo">Tua resposta:</span> Não respondida</div>`
+              : !acertou
+                ? `<div class="linha-resposta sua-errada"><span class="rotulo">Tua resposta:</span> ${letras[respostaUser]}. ${q.opcoes[respostaUser]}</div>`
+                : ``
+            }
+            <div class="linha-resposta correta"><span class="rotulo">Resposta certa:</span> ${letras[q.correta]}. ${q.opcoes[q.correta]}</div>
+            <div class="explicacao">
+              <span class="rotulo-exp">Porque é esta a resposta certa</span>
+              ${q.explicacao}
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+/* ==========================================================
+   GERAÇÃO DE PDF DA CORREÇÃO COMPLETA
+   ========================================================== */
+function gerarPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const margem = 48;
+  const largura = doc.internal.pageSize.getWidth() - margem*2;
+  let y = margem;
+
+  function novaLinhaSeNecessario(alturaNecessaria){
+    if(y + alturaNecessaria > doc.internal.pageSize.getHeight() - margem){
+      doc.addPage();
+      y = margem;
+    }
+  }
+
+  // Cabeçalho
+  doc.setFillColor(11,61,46);
+  doc.rect(0,0,doc.internal.pageSize.getWidth(),90,"F");
+  doc.setTextColor(255,255,255);
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(10);
+  doc.text(universidadeAtual.nome.toUpperCase(), margem, 34);
+  doc.setFontSize(16);
+  doc.text(exameAtual.disciplina, margem, 54);
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(10);
+  doc.text(`Ano: ${exameAtual.ano}   |   Duração: ${exameAtual.duracaoMinutos} min   |   Correção Completa`, margem, 74);
+
+  y = 118;
+  doc.setTextColor(30,35,33);
+
+  // Resumo
+  const total = exameAtual.questoes.length;
+  let certas = 0;
+  exameAtual.questoes.forEach((q,i) => { if(respostas[i] === q.correta) certas++; });
+  const percentagem = Math.round((certas/total)*100);
+
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(13);
+  doc.text(`Resultado: ${certas}/${total} (${percentagem}%)`, margem, y);
+  y += 16;
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(10);
+  doc.setTextColor(107,117,112);
+  doc.text(`Tempo usado: ${formatarTempo(tempoTotalUsadoSeg)}  |  Gerado por Moz Carreiras — Simulador de Exames de Admissão`, margem, y);
+  y += 24;
+  doc.setTextColor(30,35,33);
+
+  const letras = ["A","B","C","D","E","F"];
+
+  exameAtual.questoes.forEach((q,i) => {
+    const respostaUser = respostas[i];
+    const acertou = respostaUser === q.correta;
+
+    novaLinhaSeNecessario(50);
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(11);
+    doc.setTextColor(acertou ? 30 : 179, acertou ? 122 : 38, acertou ? 76 : 30);
+    doc.text(`Pergunta ${i+1} — ${acertou ? "CERTA" : "ERRADA"}`, margem, y);
+    y += 16;
+
+    doc.setTextColor(30,35,33);
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10.5);
+    const linhasEnunciado = doc.splitTextToSize(q.enunciado, largura);
+    novaLinhaSeNecessario(linhasEnunciado.length*13 + 10);
+    doc.text(linhasEnunciado, margem, y);
+    y += linhasEnunciado.length*13 + 6;
+
+    if(respostaUser !== undefined && !acertou){
+      doc.setTextColor(179,38,30);
+      const txt = `Tua resposta: ${letras[respostaUser]}. ${q.opcoes[respostaUser]}`;
+      const linhas = doc.splitTextToSize(txt, largura);
+      novaLinhaSeNecessario(linhas.length*12 + 6);
+      doc.text(linhas, margem, y);
+      y += linhas.length*12 + 4;
+    } else if(respostaUser === undefined){
+      doc.setTextColor(179,38,30);
+      novaLinhaSeNecessario(14);
+      doc.text("Tua resposta: Não respondida", margem, y);
+      y += 14;
+    }
+
+    doc.setTextColor(30,122,76);
+    const txtCerta = `Resposta certa: ${letras[q.correta]}. ${q.opcoes[q.correta]}`;
+    const linhasCerta = doc.splitTextToSize(txtCerta, largura);
+    novaLinhaSeNecessario(linhasCerta.length*12 + 6);
+    doc.text(linhasCerta, margem, y);
+    y += linhasCerta.length*12 + 6;
+
+    doc.setTextColor(60,64,62);
+    doc.setFont("helvetica","italic");
+    const linhasExp = doc.splitTextToSize("Explicação: " + q.explicacao, largura);
+    novaLinhaSeNecessario(linhasExp.length*12 + 16);
+    doc.text(linhasExp, margem, y);
+    y += linhasExp.length*12 + 20;
+  });
+
+  const nomeArquivo = `correcao-${universidadeAtual.id}-${exameAtual.id}.pdf`;
+  doc.save(nomeArquivo);
+}
+
+/* ==========================================================
+   INICIALIZAÇÃO
+   ========================================================== */
+renderHome();
+
+/* ==========================================================
+   AUTO-AJUSTE DE ALTURA QUANDO EMBEBIDO NUM IFRAME (BLOGGER)
+   -----------------------------------------------------------
+   Envia a altura real do conteúdo à janela pai (o post/página
+   do Blogger) sempre que o conteúdo muda de tela ou de tamanho,
+   para o iframe crescer/encolher sem barra de scroll dupla.
+   O código correspondente a colar no Blogger está nas
+   instruções de publicação.
+   ========================================================== */
+(function(){
+  if(window.self === window.top) return; // só corre dentro de um iframe
+  function enviarAltura(){
+    const altura = document.documentElement.scrollHeight;
+    window.parent.postMessage({ tipo: "simuladorMozCarreirasAltura", altura: altura }, "*");
+  }
+  window.addEventListener("load", enviarAltura);
+  new ResizeObserver(enviarAltura).observe(document.body);
+  document.addEventListener("click", () => setTimeout(enviarAltura, 60));
+})();
+</script>
+
