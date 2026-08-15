@@ -183,21 +183,56 @@
   }
   @keyframes pulsar{0%,100%{opacity:1;}50%{opacity:0.65;}}
 
+  .mc-exam-app .topo-acoes{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+
+  .mc-exam-app .menu-hamburguer-btn{
+    flex-shrink:0; width:42px; height:42px; padding:8px;
+    background:transparent; border:none; border-radius:10px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+    transition:background 0.2s ease;
+  }
+  .mc-exam-app .menu-hamburguer-btn:hover{background:rgba(255,255,255,0.1);}
+  .mc-exam-app .menu-hamburguer-btn:active{transform:scale(0.94);}
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"]{background:rgba(255,255,255,0.1);}
+  .mc-exam-app .menu-hamburguer-btn span{
+    display:block; width:19px; height:2px; border-radius:2px; background:#fff;
+    transition:transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+    transform-origin:center;
+  }
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] span:nth-child(2){opacity:0;}
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  .mc-exam-app .menu-hamburguer-painel{
+    background:#fff; box-shadow:none;
+    display:grid; grid-template-rows:0fr; transition:grid-template-rows 1s cubic-bezier(0.22,1,0.36,1), box-shadow 1s ease, visibility 0s linear 1s;
+    pointer-events:none; overflow:hidden; visibility:hidden;
+  }
+  .mc-exam-app .menu-hamburguer-painel.aberto{grid-template-rows:1fr; pointer-events:auto; box-shadow:0 4px 14px rgba(0,0,0,0.10); visibility:visible; transition:grid-template-rows 1s cubic-bezier(0.22,1,0.36,1), box-shadow 1s ease, visibility 0s linear 0s;}
+  .mc-exam-app .menu-hamburguer-painel .menu-hamburguer-inner{overflow:hidden; min-height:0; display:flex; flex-direction:column; padding:4px 0;}
+  .mc-exam-app .menu-hamburguer-painel a{
+    display:block; padding:11px 20px; margin:0;
+    font-family:var(--fonte-app) !important; font-size:14px; font-weight:500;
+    color:var(--carvao); text-decoration:none; transition:background 0.2s ease;
+  }
+  .mc-exam-app .menu-hamburguer-painel a:hover{background:var(--creme); color:var(--verde-escuro);}
+  .mc-exam-app .menu-hamburguer-painel a.link-ativo{background:var(--sucesso-bg); color:var(--verde); font-weight:700;}
+
   .mc-exam-app .mc-sim-container{max-width:900px; width:100%; margin:0 auto; padding:20px 16px 24px; box-sizing:border-box; padding-top:calc(20px + var(--mc-topo-altura, 76px));}
 
   .mc-exam-app /* Cabeçalhos de secção reutilizáveis */
-  .hero{padding:var(--sp-7) 4px var(--sp-2);}
+  .hero{padding:var(--sp-7) 0 var(--sp-2);}
   .mc-exam-app .hero .eyebrow{
     font-size:var(--tp-sm); letter-spacing:0.1em; text-transform:uppercase;
     color:var(--verde); font-weight:600; margin-bottom:var(--sp-3);
     display:flex; align-items:center; gap:8px;
   }
   .mc-exam-app .hero .eyebrow::before{content:""; width:16px; height:1.5px; background:var(--dourado); display:inline-block;}
-  .mc-exam-app .hero h1{font-size:var(--tp-xxl); color:var(--verde-escuro); line-height:1.22; text-align:left; hyphens:none; -webkit-hyphens:none; font-weight:600; overflow-wrap:break-word; word-break:normal; max-width:22ch;}
+  .mc-exam-app .hero h1{font-size:var(--tp-sm); color:var(--verde-escuro); line-height:1.5; text-align:left; hyphens:none; -webkit-hyphens:none; font-weight:600; overflow-wrap:break-word; word-break:normal; max-width:none;}
   .mc-exam-app .hero p{color:var(--cinza); font-size:var(--tp-md); margin-top:var(--sp-3); max-width:52ch; line-height:1.65; text-align:left; hyphens:none; -webkit-hyphens:none;}
   @media(max-width:480px){
-    .mc-exam-app .hero{padding:var(--sp-6) 4px var(--sp-2);}
-    .mc-exam-app .hero h1{font-size:clamp(22px, 6.2vw, 27px); line-height:1.28; max-width:20ch;}
+    .mc-exam-app .hero{padding:var(--sp-6) 0 var(--sp-2);}
+    .mc-exam-app .hero h1{font-size:clamp(12.5px, 3.2vw, 14px); line-height:1.6; max-width:none;}
     .mc-exam-app .hero p{font-size:var(--tp-sm); line-height:1.6;}
   }
 
@@ -458,7 +493,7 @@
 
   .mc-exam-app /* Modal */
   .modal-fundo{
-    position:fixed; inset:0; background:rgba(6,38,28,0.55); z-index:50;
+    position:fixed; inset:0; background:rgba(6,38,28,0.55); z-index:10000;
     display:flex; align-items:flex-start; justify-content:center;
     padding:20px 16px; overflow-y:auto;
     animation:mcFundoEntrar 0.2s ease-out both;
@@ -537,13 +572,28 @@
       <div class="pastilha">🎓</div>
       <div class="marca-texto">
         <strong>Moz Carreiras</strong>
-        <span>Simulador de Admissão</span>
+        <span>Simulador de Exames</span>
       </div>
     </div>
-    <div id="cronometro-topo" class="cronometro hidden" role="timer" aria-live="polite" aria-atomic="true">
-      <span aria-hidden="true">⏱</span><span id="texto-cronometro">00:00</span>
+    <div class="topo-acoes">
+      <div id="cronometro-topo" class="cronometro hidden" role="timer" aria-live="polite" aria-atomic="true">
+        <span aria-hidden="true">⏱</span><span id="texto-cronometro">00:00</span>
+      </div>
+      <button type="button" id="menuHamburguerBtn" class="menu-hamburguer-btn" aria-label="Abrir menu" aria-haspopup="true" aria-expanded="false" aria-controls="menuHamburguerPainel">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </div>
+  <nav id="menuHamburguerPainel" class="menu-hamburguer-painel" aria-label="Menu Moz Carreiras">
+    <div class="menu-hamburguer-inner">
+      <a href="https://mozcarreiras.blogspot.com/p/exames-de-admissao.html" target="_top" class="link-ativo">Exames</a>
+      <a href="https://mozcarreiras.blogspot.com/search/label/Not%C3%ADcias" target="_top">Notícias</a>
+      <a href="https://mozcarreiras.blogspot.com/p/contactos.html" target="_top">Contactos</a>
+      <a href="https://mozcarreiras.blogspot.com/p/bolsas-de-estudo.html" target="_top">Bolsas de Estudo</a>
+      <a href="https://mozcarreiras.blogspot.com/search/label/Dicas" target="_top">Dicas de Carreira</a>
+      <a href="https://mozcarreiras.blogspot.com/" target="_top">Vagas de Emprego</a>
+    </div>
+  </nav>
 </div>
 
 <div class="mc-sim-container">
@@ -552,8 +602,7 @@
   <div id="tela-inicio">
     <div class="hero">
       <div class="eyebrow">Preparação para exames de admissão</div>
-      <h1>Pratica com exames reais de universidades moçambicanas</h1>
-      <p>Escolhe uma universidade pública e depois a disciplina que queres praticar. Cada simulação tem o tempo oficial, correção automática e explicação detalhada de todas as respostas.</p>
+      <h1>Prepare-se com conteúdos de qualidade. A nossa plataforma compila exames reais aplicados em diversas instituições de ensino em Moçambique, cobrindo desde o ensino secundário, técnico-profissional até ao nível superior, facilitando o treino prático e a familiarização com os modelos de exame das diferentes instituições.</h1>
     </div>
     <div id="lista-universidades" class="lista-universidades"></div>
   </div>
@@ -617,7 +666,7 @@
 
 <div id="area-modal"></div>
 
-<footer class="rodape-app">Moz Carreiras · Simulador de Exames de Admissão</footer>
+<footer class="rodape-app">© 2026 Moz Carreiras. Todos os direitos reservados.</footer>
 </div>
 
 <script>
@@ -2045,8 +2094,45 @@ function mostrarTela(id){
   window.addEventListener("resize", ajustarEspacoTopoFixo);
   ajustarEspacoTopoFixo();
   if(window.ResizeObserver && topo){
-    new ResizeObserver(ajustarEspacoTopoFixo).observe(topo);
+    let pendenteRAF1 = null;
+    new ResizeObserver(() => {
+      if(pendenteRAF1) return;
+      pendenteRAF1 = requestAnimationFrame(() => { pendenteRAF1 = null; ajustarEspacoTopoFixo(); });
+    }).observe(topo);
   }
+
+  // Menu hambúrguer do cabeçalho: abre/fecha o painel de navegação,
+  // fecha ao clicar fora, ao premir Escape, ou ao escolher um link.
+  const menuBtn = document.getElementById("menuHamburguerBtn");
+  const menuPainel = document.getElementById("menuHamburguerPainel");
+  function fecharMenuHamburguer(){
+    if(!menuBtn || !menuPainel) return;
+    menuBtn.setAttribute("aria-expanded", "false");
+    menuPainel.classList.remove("aberto");
+  }
+  function alternarMenuHamburguer(){
+    if(!menuBtn || !menuPainel) return;
+    const aberto = menuBtn.getAttribute("aria-expanded") === "true";
+    if(aberto){ fecharMenuHamburguer(); }
+    else{
+      menuBtn.setAttribute("aria-expanded", "true");
+      menuPainel.classList.add("aberto");
+    }
+  }
+  if(menuBtn){
+    menuBtn.addEventListener("click", function(evento){
+      evento.stopPropagation();
+      alternarMenuHamburguer();
+    });
+  }
+  document.addEventListener("click", function(evento){
+    if(!menuPainel || !menuPainel.classList.contains("aberto")) return;
+    if(evento.target.closest("#menuHamburguerPainel, #menuHamburguerBtn")) return;
+    fecharMenuHamburguer();
+  });
+  document.addEventListener("keydown", function(evento){
+    if(evento.key === "Escape") fecharMenuHamburguer();
+  });
 
   document.addEventListener("click", function(evento){
     const btn = evento.target.closest(".mc-exam-app .btn");
@@ -2747,7 +2833,11 @@ renderHome();
     window.parent.postMessage({ tipo: "simuladorMozCarreirasAltura", altura: altura }, "*");
   }
   window.addEventListener("load", enviarAltura);
-  new ResizeObserver(enviarAltura).observe(document.body);
+  let pendenteRAF2 = null;
+  new ResizeObserver(() => {
+    if(pendenteRAF2) return;
+    pendenteRAF2 = requestAnimationFrame(() => { pendenteRAF2 = null; enviarAltura(); });
+  }).observe(document.body);
   document.addEventListener("click", () => setTimeout(enviarAltura, 60));
 })();
 </script>
