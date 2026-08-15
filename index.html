@@ -4,12 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Moz Carreiras — Simulador de Admissão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap');
-
-  
   :root{
+    /* Paleta */
     --verde: #0B3D2E;
     --verde-escuro: #06261C;
     --dourado: #C9A24B;
@@ -17,11 +18,13 @@
     --creme: #F7F5EF;
     --carvao: #1E2321;
     --cinza: #6B7570;
+    --cinza-claro: #9BA39D;
     --linha: #E1DDD1;
     --sucesso: #1E7A4C;
     --sucesso-bg: #EAF5EE;
     --erro: #B3261E;
     --erro-bg: #FBEBEA;
+
     /* Fonte do simulador — por omissão usa uma pilha profissional neutra.
        Se estiver embebido no Blogger, o script do template pode enviar o
        nome da fonte do post (ver mensagem "simuladorMozCarreirasFonte"),
@@ -29,6 +32,30 @@
        fonte do resto do blog. Mono é usada apenas em números/cronómetro. */
     --fonte-app: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
     --fonte-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    /* Escala tipográfica — proporção ~1.2, fluida entre breakpoints */
+    --tp-xs: clamp(11px, 0.68vw + 9.6px, 12px);
+    --tp-sm: clamp(12.5px, 0.7vw + 11px, 13.5px);
+    --tp-base: clamp(14.5px, 0.75vw + 12.8px, 15.5px);
+    --tp-md: clamp(15.5px, 0.85vw + 13.6px, 17px);
+    --tp-lg: clamp(18px, 1.1vw + 15.6px, 21px);
+    --tp-xl: clamp(21px, 1.6vw + 17.6px, 26px);
+    --tp-xxl: clamp(26px, 2.6vw + 20px, 36px);
+
+    /* Espaçamento — escala consistente de 4px */
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+    --sp-5: 20px; --sp-6: 24px; --sp-7: 32px; --sp-8: 40px;
+
+    /* Raios e sombras — tokens reutilizados em toda a interface */
+    --raio-sm: 8px; --raio-md: 12px; --raio-lg: 16px; --raio-full: 999px;
+    --sombra-sm: 0 2px 8px rgba(11,61,46,0.06);
+    --sombra-md: 0 6px 18px rgba(11,61,46,0.09);
+    --sombra-lg: 0 14px 34px rgba(11,61,46,0.14);
+
+    /* Curvas de easing partilhadas por todas as transições da interface */
+    --ease-suave: cubic-bezier(0.16,1,0.3,1);
+    --ease-saida: cubic-bezier(0.4,0,1,1);
+    --dur-r: 0.18s;  --dur-m: 0.32s;  --dur-l: 0.5s;
   }
   html, body{
     background:transparent !important;
@@ -37,6 +64,11 @@
     -moz-text-size-adjust:100%;
     -ms-text-size-adjust:100%;
     text-size-adjust:100%;
+    scroll-behavior:smooth;
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *, *::before, *::after{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
   }
   .mc-exam-app, .mc-exam-app *{
     -webkit-text-size-adjust:100% !important;
@@ -48,42 +80,83 @@
     background:transparent;
     color:var(--carvao);
     font-family:var(--fonte-app) !important;
+    font-size:var(--tp-base);
+    line-height:1.55;
     -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    text-rendering:optimizeLegibility;
   }
   .mc-exam-app .hidden{display:none !important;}
-  .mc-exam-app h1,.mc-exam-app h2,.mc-exam-app h3{font-family:var(--fonte-app) !important; margin:0; letter-spacing:-0.01em;}
-  .mc-exam-app .mono{font-family:var(--fonte-mono) !important;}
+  .mc-exam-app p{margin:0;}
+
+  .mc-exam-app /* Transições de tela e entrada de conteúdo */
+  @keyframes mcEntrar{
+    from{opacity:0; transform:translateY(14px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  @keyframes mcSurgir{
+    from{opacity:0; transform:scale(0.97);}
+    to{opacity:1; transform:scale(1);}
+  }
+  .mc-exam-app .mc-anim{animation:mcEntrar 0.5s cubic-bezier(0.16,1,0.3,1) both;}
+  .mc-exam-app .lista-universidades > *,
+  .mc-exam-app .lista-disciplinas > *,
+  .mc-exam-app .lista-exames > *{
+    animation:mcEntrar 0.45s cubic-bezier(0.16,1,0.3,1) both;
+    animation-delay:var(--atraso, 0ms);
+  }
+
+  .mc-exam-app button:focus-visible,
+  .mc-exam-app [tabindex]:focus-visible,
+  .mc-exam-app .cartao-universidade:focus-visible,
+  .mc-exam-app .cartao-disciplina:focus-visible,
+  .mc-exam-app .cartao-exame:focus-visible,
+  .mc-exam-app .opcao:focus-visible,
+  .mc-exam-app .nav-q:focus-visible{
+    outline:2px solid var(--dourado);
+    outline-offset:2px;
+    border-radius:6px;
+  }
+  .mc-exam-app h1,.mc-exam-app h2,.mc-exam-app h3{font-family:var(--fonte-app) !important; margin:0; letter-spacing:-0.015em; font-weight:600; text-wrap:balance;}
+  .mc-exam-app .mono{font-family:var(--fonte-mono) !important; font-variant-numeric:tabular-nums;}
+  .mc-exam-app ::selection{background:var(--dourado-claro); color:var(--verde-escuro);}
 
 
   .mc-exam-app /* Cabeçalho global */
   .topo{
     background:var(--verde);
     color:#fff;
-    padding:18px 20px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    position:relative;
-    box-shadow:0 2px 10px rgba(0,0,0,0.12);
+    position:sticky;
+    top:0;
+    z-index:30;
+    box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 10px rgba(0,0,0,0.10);
+    transition:box-shadow 0.25s ease;
   }
-  .mc-exam-app .topo{padding:22px 20px;}
+  .mc-exam-app .topo.elevado{box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 22px rgba(0,0,0,0.20);}
+  .mc-exam-app .topo-inner{
+    max-width:900px; margin:0 auto; padding:18px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
   .mc-exam-app .topo .marca{display:flex; align-items:center; gap:12px;}
   .mc-exam-app .topo .marca .pastilha{
     width:52px;height:52px;border-radius:12px;flex-shrink:0;
     background:linear-gradient(150deg,var(--dourado),var(--dourado-claro));
     display:flex;align-items:center;justify-content:center;
     color:var(--verde-escuro); font-weight:700; font-family:var(--fonte-app) !important; font-size:26px;
+    transition:transform 0.2s ease;
   }
+  .mc-exam-app .topo .marca:hover .pastilha{transform:rotate(-4deg) scale(1.04);}
   .mc-exam-app .topo .marca-texto{line-height:1.2;}
   .mc-exam-app .topo .marca-texto strong{display:block; font-size:19px; font-weight:600; font-family:var(--fonte-app) !important;}
   .mc-exam-app .topo .marca-texto span{font-size:13px; opacity:0.8; letter-spacing:0.05em; text-transform:uppercase; font-family:var(--fonte-app) !important;}
 
   .mc-exam-app .cronometro{
     font-family:var(--fonte-mono) !important;
+    font-variant-numeric:tabular-nums;
     background:rgba(255,255,255,0.08);
     border:1px solid rgba(255,255,255,0.18);
     padding:8px 14px;
-    border-radius:10px;
+    border-radius:var(--raio-sm);
     font-size:17px;
     font-weight:500;
     display:flex; align-items:center; gap:8px;
@@ -96,22 +169,27 @@
   }
   @keyframes pulsar{0%,100%{opacity:1;}50%{opacity:0.65;}}
 
-  .mc-exam-app .mc-sim-container{max-width:100%; width:100%; margin:0; padding:20px 16px 24px; box-sizing:border-box;}
+  .mc-exam-app .mc-sim-container{max-width:900px; width:100%; margin:0 auto; padding:20px 16px 24px; box-sizing:border-box;}
 
   .mc-exam-app /* Cabeçalhos de secção reutilizáveis */
-  .hero{padding:28px 4px 8px;}
+  .hero{padding:var(--sp-7) 4px var(--sp-2);}
   .mc-exam-app .hero .eyebrow{
-    font-size:13px; letter-spacing:0.1em; text-transform:uppercase;
-    color:var(--verde); font-weight:600; margin-bottom:12px;
+    font-size:var(--tp-sm); letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--verde); font-weight:600; margin-bottom:var(--sp-3);
+    display:flex; align-items:center; gap:8px;
   }
-  .mc-exam-app .hero h1{font-size:32px; color:var(--verde-escuro); line-height:1.28; text-align:left; hyphens:none; -webkit-hyphens:none;}
-  .mc-exam-app .hero p{color:var(--cinza); font-size:15.5px; margin-top:12px; max-width:52ch; line-height:1.6; text-align:left; hyphens:none; -webkit-hyphens:none;}
+  .mc-exam-app .hero .eyebrow::before{content:""; width:16px; height:1.5px; background:var(--dourado); display:inline-block;}
+  .mc-exam-app .hero h1{font-size:var(--tp-xxl); color:var(--verde-escuro); line-height:1.22; text-align:left; hyphens:none; -webkit-hyphens:none; font-weight:600;}
+  .mc-exam-app .hero p{color:var(--cinza); font-size:var(--tp-md); margin-top:var(--sp-3); max-width:52ch; line-height:1.65; text-align:left; hyphens:none; -webkit-hyphens:none;}
 
   .mc-exam-app .voltar{
     background:none; border:none; color:var(--verde); font-weight:600;
-    font-size:14px; cursor:pointer; padding:6px 0; margin-bottom:14px;
-    display:flex; align-items:center; gap:6px;
+    font-size:var(--tp-sm); cursor:pointer; padding:6px 2px; margin-bottom:14px;
+    display:inline-flex; align-items:center; gap:6px; border-radius:6px;
+    transition:gap 0.2s var(--ease-suave), color 0.15s;
   }
+  .mc-exam-app .voltar:hover{gap:9px; color:var(--verde-escuro);}
+  .mc-exam-app .voltar svg, .mc-exam-app .voltar span.seta-voltar{transition:transform 0.2s var(--ease-suave);}
 
   .mc-exam-app /* Tela inicial — lista de universidades */
   .lista-universidades{display:flex; flex-direction:column; gap:14px; margin-top:24px;}
@@ -126,7 +204,7 @@
     transition:border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   }
   .mc-exam-app .cartao-disciplina:active{transform:scale(0.99);}
-  .mc-exam-app .cartao-disciplina:hover{border-color:var(--dourado); box-shadow:0 6px 18px rgba(11,61,46,0.08);}
+  .mc-exam-app .cartao-disciplina:hover{border-color:var(--dourado); box-shadow:var(--sombra-md); transform:translateY(-2px);}
   .mc-exam-app .cartao-disciplina .icone{
     flex-shrink:0; min-width:44px; width:auto; height:44px; border-radius:10px;
     background:var(--creme); color:var(--verde);
@@ -148,11 +226,11 @@
     padding:20px 22px;
     cursor:pointer;
     display:flex; align-items:center; gap:18px;
-    min-height:104px;
+    height:116px;
     transition:border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   }
   .mc-exam-app .cartao-universidade:active{transform:scale(0.99);}
-  .mc-exam-app .cartao-universidade:hover{border-color:var(--dourado); box-shadow:0 6px 18px rgba(11,61,46,0.08);}
+  .mc-exam-app .cartao-universidade:hover{border-color:var(--dourado); box-shadow:var(--sombra-md); transform:translateY(-2px);}
   .mc-exam-app .cartao-universidade .emblema{
     flex-shrink:0; min-width:72px; width:auto; height:72px; border-radius:16px;
     background:linear-gradient(150deg,var(--verde),var(--verde-escuro));
@@ -160,11 +238,17 @@
     font-family:var(--fonte-app) !important; font-weight:700; font-size:19px;
     overflow:hidden; white-space:nowrap; text-align:center; box-sizing:border-box; padding:0 8px; line-height:1;
   }
-  .mc-exam-app .cartao-universidade .info{flex:1; min-width:0;}
-  .mc-exam-app .cartao-universidade h3{font-size:19px; font-weight:700; color:var(--verde-escuro); line-height:1.3; white-space:normal; overflow-wrap:break-word; max-width:100%;}
-  .mc-exam-app .cartao-universidade .meta{
-    display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; font-size:14px; color:var(--cinza);
+  .mc-exam-app .cartao-universidade .info{flex:1; min-width:0; overflow:hidden;}
+  .mc-exam-app .cartao-universidade h3{
+    font-size:17px; font-weight:700; color:var(--verde-escuro); line-height:1.28;
+    display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2;
+    overflow:hidden; overflow-wrap:break-word; max-width:100%; max-height:calc(1.28em * 2);
   }
+  .mc-exam-app .cartao-universidade .meta{
+    display:flex; gap:14px; margin-top:8px; font-size:13.5px; color:var(--cinza);
+    white-space:nowrap; overflow:hidden;
+  }
+  .mc-exam-app .cartao-universidade .meta span{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .mc-exam-app .cartao-universidade .seta{color:var(--dourado); font-size:22px; flex-shrink:0;}
 
   .mc-exam-app .estado-vazio{
@@ -204,7 +288,7 @@
     background:var(--dourado);
   }
   .mc-exam-app .cartao-exame:active{transform:scale(0.99);}
-  .mc-exam-app .cartao-exame:hover{border-color:var(--dourado); box-shadow:0 6px 18px rgba(11,61,46,0.08);}
+  .mc-exam-app .cartao-exame:hover{border-color:var(--dourado); box-shadow:var(--sombra-md); transform:translateY(-2px);}
   .mc-exam-app .cartao-exame .disciplina-eyebrow{
     font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;
     color:var(--dourado); margin-bottom:6px;
@@ -246,21 +330,39 @@
 
   .mc-exam-app .rodape-detalhes{padding:20px 24px 26px;}
   .mc-exam-app .btn{
+    position:relative; overflow:hidden; isolation:isolate;
     display:inline-flex; align-items:center; justify-content:center; gap:8px;
     background:var(--verde); color:#fff; border:none;
-    padding:14px 22px; border-radius:10px; font-size:15px; font-weight:600;
-    cursor:pointer; width:100%; transition:background 0.15s, transform 0.1s;
+    padding:14px 22px; border-radius:var(--raio-sm); font-size:var(--tp-md); font-weight:600;
+    cursor:pointer; width:100%;
+    transition:background 0.18s, transform 0.12s var(--ease-suave), box-shadow 0.2s;
     font-family:var(--fonte-app) !important;
+    letter-spacing:0.005em;
   }
-  .mc-exam-app .btn:hover{background:var(--verde-escuro);}
-  .mc-exam-app .btn:active{transform:scale(0.98);}
+  .mc-exam-app .btn:hover{background:var(--verde-escuro); box-shadow:0 4px 14px rgba(11,61,46,0.22); transform:translateY(-1px);}
+  .mc-exam-app .btn:active{transform:translateY(0) scale(0.98); box-shadow:none;}
   .mc-exam-app .btn.dourado{background:var(--dourado); color:var(--verde-escuro);}
-  .mc-exam-app .btn.dourado:hover{background:var(--dourado-claro);}
+  .mc-exam-app .btn.dourado:hover{background:var(--dourado-claro); box-shadow:0 4px 14px rgba(201,162,75,0.35);}
   .mc-exam-app .btn.contorno{background:#fff; color:var(--verde); border:1.5px solid var(--verde);}
-  .mc-exam-app .btn.contorno:hover{background:var(--sucesso-bg);}
+  .mc-exam-app .btn.contorno:hover{background:var(--sucesso-bg); box-shadow:none; transform:translateY(-1px);}
   .mc-exam-app .btn.perigo{background:var(--erro);}
   .mc-exam-app .btn.perigo:hover{background:#8f1f19;}
-  .mc-exam-app .btn:disabled{opacity:0.5; cursor:not-allowed;}
+  .mc-exam-app .btn:disabled{opacity:0.5; cursor:not-allowed; box-shadow:none; transform:none;}
+  .mc-exam-app .btn .spinner{
+    width:15px; height:15px; border-radius:50%;
+    border:2px solid rgba(255,255,255,0.35); border-top-color:#fff;
+    animation:mcGirar 0.7s linear infinite; flex-shrink:0;
+  }
+  @keyframes mcGirar{to{transform:rotate(360deg);}}
+
+  /* Ondulação (ripple) ao clicar — feedback tátil discreto em cada botão */
+  .mc-exam-app .btn .ondulacao{
+    position:absolute; border-radius:50%; pointer-events:none;
+    background:rgba(255,255,255,0.45); transform:scale(0);
+    animation:mcOndular 0.55s ease-out forwards; z-index:0;
+  }
+  .mc-exam-app .btn.contorno .ondulacao{background:rgba(11,61,46,0.12);}
+  @keyframes mcOndular{to{transform:scale(2.6); opacity:0;}}
 
   .mc-exam-app /* Tela de exame */
   .barra-progresso-wrap{
@@ -272,7 +374,7 @@
     display:flex; justify-content:space-between; font-size:12.5px; color:var(--cinza); margin-bottom:7px; font-weight:500;
   }
   .mc-exam-app .barra-progresso{height:6px; background:var(--linha); border-radius:4px; overflow:hidden;}
-  .mc-exam-app .barra-progresso-fill{height:100%; background:linear-gradient(90deg,var(--dourado),var(--verde)); transition:width 0.25s;}
+  .mc-exam-app .barra-progresso-fill{height:100%; background:linear-gradient(90deg,var(--dourado),var(--verde)); transition:width 0.35s cubic-bezier(0.16,1,0.3,1);}
 
   .mc-exam-app .navegador-questoes{
     display:grid; grid-template-columns:repeat(auto-fill,minmax(38px,1fr));
@@ -282,13 +384,16 @@
     aspect-ratio:1; border-radius:8px; border:1.5px solid var(--linha);
     background:#fff; font-size:13px; font-weight:600; color:var(--cinza);
     cursor:pointer; font-family:var(--fonte-mono) !important;
+    transition:border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
   }
+  .mc-exam-app .nav-q:hover{border-color:var(--dourado); transform:translateY(-1px);}
   .mc-exam-app .nav-q.respondida{background:var(--sucesso-bg); border-color:var(--sucesso); color:var(--sucesso);}
   .mc-exam-app .nav-q.atual{background:var(--verde); border-color:var(--verde); color:#fff;}
 
   .mc-exam-app .cartao-questao{
     background:#fff; border:1px solid var(--linha); border-radius:14px;
     padding:24px; margin-top:20px;
+    animation:mcEntrar 0.35s cubic-bezier(0.16,1,0.3,1) both;
   }
   .mc-exam-app .cartao-questao .numero{
     font-family:var(--fonte-mono) !important; font-size:12px; color:var(--dourado);
@@ -299,24 +404,37 @@
   .mc-exam-app .opcao{
     display:flex; align-items:flex-start; gap:12px;
     border:1.5px solid var(--linha); border-radius:10px; padding:13px 15px;
-    cursor:pointer; transition:border-color 0.12s, background 0.12s;
+    cursor:pointer; transition:border-color 0.15s, background 0.15s, transform 0.1s;
     font-size:15px; line-height:1.5;
   }
-  .mc-exam-app .opcao:hover{border-color:var(--dourado);}
-  .mc-exam-app .opcao.selecionada{border-color:var(--verde); background:var(--sucesso-bg);}
+  .mc-exam-app .opcao:hover{border-color:var(--dourado); transform:translateX(2px);}
+  .mc-exam-app .opcao:active{transform:scale(0.99);}
+  .mc-exam-app .opcao.selecionada{border-color:var(--verde); background:var(--sucesso-bg); animation:mcSurgir 0.2s ease-out;}
   .mc-exam-app .opcao .letra{
     flex-shrink:0; width:26px; height:26px; border-radius:50%;
     border:1.5px solid var(--linha); display:flex; align-items:center; justify-content:center;
     font-size:12.5px; font-weight:700; font-family:var(--fonte-mono) !important; color:var(--cinza);
+    transition:background 0.15s, border-color 0.15s, transform 0.2s;
   }
-  .mc-exam-app .opcao.selecionada .letra{background:var(--verde); border-color:var(--verde); color:#fff;}
+  .mc-exam-app .opcao.selecionada .letra{background:var(--verde); border-color:var(--verde); color:#fff; transform:scale(1.08);}
 
   .mc-exam-app .navegacao-questao{display:flex; gap:10px; margin-top:20px;}
   .mc-exam-app .navegacao-questao .btn{width:auto; flex:1;}
 
+  .mc-exam-app .dica-teclado{
+    text-align:center; font-size:var(--tp-xs); color:var(--cinza-claro);
+    margin-top:14px; letter-spacing:0.01em;
+  }
+  .mc-exam-app .dica-teclado .mono{
+    background:var(--creme); border:1px solid var(--linha); border-radius:4px;
+    padding:1px 6px; font-size:10.5px; color:var(--cinza);
+  }
+  @media (hover:none){ .mc-exam-app .dica-teclado{display:none;} }
+
   .mc-exam-app .barra-inferior{
     position:sticky; bottom:0; background:#fff; border-top:1px solid var(--linha);
     padding:14px 18px; margin-top:24px;
+    box-shadow:0 -8px 20px rgba(0,0,0,0.04);
   }
 
   .mc-exam-app /* Modal */
@@ -324,7 +442,10 @@
     position:fixed; inset:0; background:rgba(6,38,28,0.55); z-index:50;
     display:flex; align-items:flex-start; justify-content:center;
     padding:20px 16px; overflow-y:auto;
+    animation:mcFundoEntrar 0.2s ease-out both;
+    backdrop-filter:blur(2px);
   }
+  @keyframes mcFundoEntrar{from{opacity:0;} to{opacity:1;}}
   .mc-exam-app .modal{
     background:#fff; border-radius:16px; padding:26px 22px 22px;
     width:100%; max-width:480px; animation:descer 0.2s ease-out;
@@ -344,9 +465,14 @@
   .resumo-resultado{
     background:var(--verde); color:#fff; border-radius:16px; padding:30px 24px;
     text-align:center; margin-top:10px;
+    animation:mcSurgir 0.4s cubic-bezier(0.16,1,0.3,1) both;
   }
   .mc-exam-app .resumo-resultado .universidade{font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--dourado-claro); font-weight:600;}
   .mc-exam-app .resumo-resultado .nota{font-family:var(--fonte-app) !important; font-size:56px; font-weight:600; margin:14px 0 4px;}
+  .mc-exam-app .estatisticas-rapidas .item{animation:mcEntrar 0.4s cubic-bezier(0.16,1,0.3,1) both;}
+  .mc-exam-app .estatisticas-rapidas .item:nth-child(1){animation-delay:0.05s;}
+  .mc-exam-app .estatisticas-rapidas .item:nth-child(2){animation-delay:0.1s;}
+  .mc-exam-app .estatisticas-rapidas .item:nth-child(3){animation-delay:0.15s;}
   .mc-exam-app .resumo-resultado .fracao{font-size:14px; opacity:0.8; margin-bottom:16px;}
   .mc-exam-app .resumo-resultado .selo{display:inline-block; padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; background:rgba(255,255,255,0.15);}
 
@@ -385,44 +511,19 @@
 </style>
 </head>
 <body>
-<div id="mc-debug" style="position:fixed;top:0;left:0;right:0;z-index:999999;background:#B3261E;color:#fff;font:11px/1.35 monospace;padding:6px 8px;word-break:break-all;"></div>
-<script>
-(function(){
-  function atualizar(){
-    var d = document.getElementById('mc-debug');
-    if(!d) return;
-    var h1 = document.querySelector('.mc-exam-app .hero h1, .mc-exam-app h1');
-    var cs = h1 ? getComputedStyle(h1) : null;
-    var vv = window.visualViewport;
-    d.textContent =
-      "innerW:" + window.innerWidth +
-      " DPR:" + window.devicePixelRatio +
-      " | h1 fontSize:" + (cs ? cs.fontSize : "N/A") +
-      " fontFamily:" + (cs ? cs.fontFamily : "N/A") +
-      " | vvScale:" + (vv ? vv.scale : "N/A") +
-      " vvW:" + (vv ? Math.round(vv.width) : "N/A") +
-      " | htmlTSA:" + getComputedStyle(document.documentElement).webkitTextSizeAdjust;
-  }
-  window.addEventListener('resize', atualizar);
-  window.addEventListener('load', atualizar);
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', atualizar);
-  document.fonts && document.fonts.ready.then(atualizar);
-  atualizar();
-  setTimeout(atualizar, 800);
-})();
-</script>
-
 <div class="mc-exam-app" lang="pt">
 <div class="topo">
-  <div class="marca">
-    <div class="pastilha">🎓</div>
-    <div class="marca-texto">
-      <strong>Moz Carreiras</strong>
-      <span>Simulador de Admissão</span>
+  <div class="topo-inner">
+    <div class="marca">
+      <div class="pastilha">🎓</div>
+      <div class="marca-texto">
+        <strong>Moz Carreiras</strong>
+        <span>Simulador de Admissão</span>
+      </div>
     </div>
-  </div>
-  <div id="cronometro-topo" class="cronometro hidden">
-    <span>⏱</span><span id="texto-cronometro">00:00</span>
+    <div id="cronometro-topo" class="cronometro hidden" role="timer" aria-live="polite" aria-atomic="true">
+      <span aria-hidden="true">⏱</span><span id="texto-cronometro">00:00</span>
+    </div>
   </div>
 </div>
 
@@ -1850,21 +1951,13 @@ let horaInicioExame = null;
 let tempoTotalUsadoSeg = 0;
 
 /* ==========================================================
-   FONTE DINÂMICA — recebe a fonte do template do Blogger
+   APARÊNCIA FIXA — não herda a fonte do Blogger
    -----------------------------------------------------------
-   Quando embebido num iframe, a página pai (o Blogger) pode
-   enviar o nome da fonte que usa no post, para o simulador
-   deixar de usar a fonte de marca (IBM Plex Sans) e passar a
-   usar exatamente a mesma fonte do resto do blog, em todo o
-   lado (títulos e texto), mantendo uma aparência uniforme.
-   Ver instruções de publicação para o código a colar no
-   Blogger que envia a mensagem "simuladorMozCarreirasFonte".
+   O simulador usa sempre a sua própria fonte de marca (IBM Plex
+   Sans/Mono, carregada do Google Fonts) e o seu próprio conjunto
+   de cores/cartões, para que fique sempre igual ao alojado no
+   GitHub, seja qual for o blog ou o post onde for embebido.
    ========================================================== */
-window.addEventListener("message", function(evento){
-  if(evento.data && evento.data.tipo === "simuladorMozCarreirasFonte" && evento.data.fonte){
-    document.documentElement.style.setProperty("--fonte-app", evento.data.fonte);
-  }
-});
 
 /* ==========================================================
    NAVEGAÇÃO ENTRE TELAS
@@ -1890,9 +1983,51 @@ function mostrarTela(id){
     document.getElementById(t).classList.toggle("hidden", t !== id);
   });
   document.getElementById("cronometro-topo").classList.toggle("hidden", id !== "tela-exame");
+  // Reactiva a animação de entrada da tela, mesmo que já tenha
+  // aparecido antes (força um reflow entre remover e re-adicionar a classe).
+  const telaActiva = document.getElementById(id);
+  telaActiva.classList.remove("mc-anim");
+  void telaActiva.offsetWidth;
+  telaActiva.classList.add("mc-anim");
   irParaTopo();
   requestAnimationFrame(irParaTopo);
+  // Move o foco para o início da nova tela — melhora a navegação por
+  // teclado/leitor de ecrã a cada mudança de ecrã, como num site cuidado.
+  const alvoFoco = telaActiva.querySelector("h1, h2, .voltar");
+  if(alvoFoco){ alvoFoco.setAttribute("tabindex","-1"); alvoFoco.focus({preventScroll:true}); }
 }
+
+/* ==========================================================
+   MICROINTERAÇÕES DA INTERFACE
+   -----------------------------------------------------------
+   Sombra do cabeçalho ao rolar + ondulação (ripple) nos botões,
+   os dois pequenos detalhes que dão sensação de acabamento a
+   uma interface profissional.
+   ========================================================== */
+(function(){
+  const topo = document.querySelector(".mc-exam-app .topo");
+  function actualizarElevacaoTopo(){
+    if(!topo) return;
+    topo.classList.toggle("elevado", (window.scrollY || document.documentElement.scrollTop) > 4);
+  }
+  window.addEventListener("scroll", actualizarElevacaoTopo, {passive:true});
+  actualizarElevacaoTopo();
+
+  document.addEventListener("click", function(evento){
+    const btn = evento.target.closest(".mc-exam-app .btn");
+    if(!btn || btn.disabled) return;
+    if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const rect = btn.getBoundingClientRect();
+    const tamanho = Math.max(rect.width, rect.height) * 1.4;
+    const onda = document.createElement("span");
+    onda.className = "ondulacao";
+    onda.style.width = onda.style.height = tamanho + "px";
+    onda.style.left = (evento.clientX - rect.left - tamanho/2) + "px";
+    onda.style.top = (evento.clientY - rect.top - tamanho/2) + "px";
+    btn.appendChild(onda);
+    onda.addEventListener("animationend", () => onda.remove());
+  });
+})();
 
 function iniciais(texto){
   return texto.split(" ").filter(p => p.length > 2 || p === p.toUpperCase()).slice(0,2).map(p => p[0]).join("").toUpperCase() || texto.slice(0,2).toUpperCase();
@@ -1933,7 +2068,7 @@ function renderHome(){
   lista.innerHTML = UNIVERSIDADES.map((u, i) => {
     const numDisciplinasComExame = u.disciplinas.filter(d => d.exames.length > 0).length;
     return `
-    <div class="cartao-universidade" onclick="abrirUniversidade(${i})">
+    <div class="cartao-universidade" style="--atraso:${Math.min(i,8)*45}ms" onclick="abrirUniversidade(${i})">
       <div class="emblema" style="${estiloEmblema(u.sigla || iniciais(u.nome), 17)}">${u.sigla || iniciais(u.nome)}</div>
       <div class="info">
         <h3>${u.nome}</h3>
@@ -1966,7 +2101,7 @@ function renderDisciplinasLista(){
   lista.innerHTML = universidadeAtual.disciplinas.map((d, i) => {
     const temExames = d.exames.length > 0;
     return `
-    <div class="cartao-disciplina ${temExames ? 'tem-exames' : 'vazia'}" onclick="${temExames ? `abrirDisciplina(${i})` : ''}">
+    <div class="cartao-disciplina ${temExames ? 'tem-exames' : 'vazia'}" style="--atraso:${Math.min(i,8)*35}ms" onclick="${temExames ? `abrirDisciplina(${i})` : ''}">
       <div class="icone">${iniciais(d.nome)}</div>
       <div class="info">
         <h3>${d.nome}</h3>
@@ -1996,7 +2131,7 @@ function renderExamesDaDisciplina(){
     return;
   }
   lista.innerHTML = disciplinaAtual.exames.map((ex, i) => `
-    <div class="cartao-exame" onclick="abrirDetalhes(${i})">
+    <div class="cartao-exame" style="--atraso:${Math.min(i,8)*45}ms" onclick="abrirDetalhes(${i})">
       <div class="disciplina-eyebrow">Exame de Admissão ${ex.ano}</div>
       <h3>${ex.disciplina}${ex.variante ? ' — ' + ex.variante : ''}</h3>
       <div class="meta">
@@ -2036,11 +2171,14 @@ function pedirConfirmacaoInicio(){
 /* ==========================================================
    TELA DE EXAME
    ========================================================== */
+let exameEmCurso = false;
+
 function iniciarExame(){
   respostas = {};
   questaoActualIndex = 0;
   tempoRestanteSeg = exameAtual.duracaoMinutos * 60;
   horaInicioExame = Date.now();
+  exameEmCurso = true;
 
   renderTelaExame();
   mostrarTela("tela-exame");
@@ -2049,6 +2187,44 @@ function iniciarExame(){
   intervaloTimer = setInterval(tickTimer, 1000);
   atualizarCronometroVisual();
 }
+
+/* Avisa antes de sair/fechar a página a meio de uma simulação,
+   para não se perder o progresso por engano — comportamento
+   esperado de qualquer plataforma de exames a sério. */
+window.addEventListener("beforeunload", function(evento){
+  if(exameEmCurso){
+    evento.preventDefault();
+    evento.returnValue = "";
+  }
+});
+
+/* ==========================================================
+   ATALHOS DE TECLADO NO ECRÃ DE EXAME
+   -----------------------------------------------------------
+   ← / → muda de pergunta; 1-6 ou A-F escolhe a opção correspondente;
+   Esc fecha um balão de confirmação aberto. Ignorado quando o foco
+   está num campo de escrita (não existe nesta app, mas por segurança).
+   ========================================================== */
+document.addEventListener("keydown", function(evento){
+  const modalAberto = document.getElementById("modal-fundo");
+  if(modalAberto){
+    if(evento.key === "Escape") fecharModal();
+    return;
+  }
+  const telaExameVisivel = !document.getElementById("tela-exame").classList.contains("hidden");
+  if(!telaExameVisivel || !exameAtual) return;
+
+  if(evento.key === "ArrowRight"){ mudarQuestao(1); return; }
+  if(evento.key === "ArrowLeft"){ mudarQuestao(-1); return; }
+
+  const letras = ["a","b","c","d","e","f"];
+  const teclaLetra = letras.indexOf(evento.key.toLowerCase());
+  const teclaNumero = "123456".indexOf(evento.key);
+  const indiceOpcao = teclaNumero !== -1 ? teclaNumero : teclaLetra;
+  if(indiceOpcao !== -1 && indiceOpcao < (exameAtual.questoes[questaoActualIndex]?.opcoes.length || 0)){
+    selecionarResposta(indiceOpcao);
+  }
+});
 
 function tickTimer(){
   tempoRestanteSeg--;
@@ -2084,6 +2260,7 @@ function renderTelaExame(){
     </div>
     <div class="navegador-questoes" id="navegador-questoes"></div>
     <div id="area-questao"></div>
+    <div class="dica-teclado">Atalhos: <span class="mono">←</span> <span class="mono">→</span> muda de pergunta · <span class="mono">1–6</span> escolhe a resposta</div>
     <div class="barra-inferior">
       <button class="btn perigo" onclick="pedirConfirmacaoTerminar()">Terminar Exame</button>
     </div>
@@ -2098,7 +2275,8 @@ function renderNavegadorQuestoes(){
     let classe = "nav-q";
     if(i === questaoActualIndex) classe += " atual";
     else if(respostas[i] !== undefined) classe += " respondida";
-    return `<button class="${classe}" onclick="irParaQuestao(${i})">${i+1}</button>`;
+    const estado = i === questaoActualIndex ? "pergunta atual" : (respostas[i] !== undefined ? "respondida" : "por responder");
+    return `<button class="${classe}" onclick="irParaQuestao(${i})" aria-label="Pergunta ${i+1}, ${estado}">${i+1}</button>`;
   }).join("");
 
   const respondidas = Object.keys(respostas).length;
@@ -2115,9 +2293,9 @@ function renderQuestaoActual(){
     <div class="cartao-questao">
       <div class="numero">PERGUNTA ${questaoActualIndex+1} DE ${exameAtual.questoes.length}</div>
       <div class="enunciado">${q.enunciado}</div>
-      <div class="opcoes">
+      <div class="opcoes" role="radiogroup" aria-label="Opções de resposta">
         ${q.opcoes.map((op,i) => `
-          <div class="opcao ${respostas[questaoActualIndex] === i ? 'selecionada' : ''}" onclick="selecionarResposta(${i})">
+          <div class="opcao ${respostas[questaoActualIndex] === i ? 'selecionada' : ''}" role="radio" aria-checked="${respostas[questaoActualIndex] === i}" tabindex="0" onclick="selecionarResposta(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selecionarResposta(${i});}">
             <div class="letra">${letras[i]}</div>
             <div>${op}</div>
           </div>
@@ -2167,6 +2345,7 @@ function pedirConfirmacaoTerminar(){
 
 function finalizarExame(porTempoEsgotado){
   clearInterval(intervaloTimer);
+  exameEmCurso = false;
   tempoTotalUsadoSeg = Math.round((Date.now() - horaInicioExame) / 1000);
   renderResultados(porTempoEsgotado);
   mostrarTela("tela-resultados");
@@ -2202,7 +2381,14 @@ function abrirModal({titulo, texto, botoes}){
   requestAnimationFrame(irParaTopo);
 }
 function fecharModal(){
-  document.getElementById("area-modal").innerHTML = "";
+  const fundo = document.getElementById("modal-fundo");
+  if(!fundo || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)){
+    document.getElementById("area-modal").innerHTML = "";
+    return;
+  }
+  fundo.style.animation = "mcFundoEntrar 0.15s ease-in reverse";
+  fundo.querySelector(".modal").style.animation = "descer 0.15s ease-in reverse";
+  setTimeout(() => { document.getElementById("area-modal").innerHTML = ""; }, 150);
 }
 
 /* ==========================================================
@@ -2221,7 +2407,7 @@ function renderResultados(porTempoEsgotado){
   container.innerHTML = `
     <div class="resumo-resultado">
       <div class="universidade">${universidadeAtual.nome} · ${exameAtual.disciplina}${exameAtual.variante ? ' — ' + exameAtual.variante : ''}</div>
-      <div class="nota">${percentagem}%</div>
+      <div class="nota" id="nota-resultado">0%</div>
       <div class="fracao">${certas} de ${total} perguntas certas</div>
       <div class="selo">${porTempoEsgotado ? "Tempo esgotado — exame submetido automaticamente" : "Exame submetido"}</div>
     </div>
@@ -2233,7 +2419,7 @@ function renderResultados(porTempoEsgotado){
     </div>
 
     <div class="acoes-resultado">
-      <button class="btn dourado" onclick="gerarPDF()">⬇ Baixar Correção Completa em PDF</button>
+      <button class="btn dourado" id="botao-pdf" onclick="baixarPDF()">⬇ Baixar Correção Completa em PDF</button>
       <button class="btn contorno" onclick="mostrarTela('tela-disciplina'); renderExamesDaDisciplina();">Escolher outro exame desta disciplina</button>
       <button class="btn contorno" onclick="mostrarTela('tela-universidade'); renderDisciplinasLista();">Ver outras disciplinas</button>
       <button class="btn contorno" onclick="mostrarTela('tela-inicio'); renderHome();">Voltar às Universidades</button>
@@ -2267,6 +2453,45 @@ function renderResultados(porTempoEsgotado){
       }).join("")}
     </div>
   `;
+
+  animarContagem(document.getElementById("nota-resultado"), percentagem);
+}
+
+/* Anima a percentagem final subindo de 0 até ao valor real,
+   dando uma sensação mais viva ao ecrã de resultados. */
+function animarContagem(elemento, valorFinal){
+  if(!elemento) return;
+  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    elemento.textContent = valorFinal + "%";
+    return;
+  }
+  const duracao = 700;
+  const inicio = performance.now();
+  function passo(agora){
+    const progresso = Math.min(1, (agora - inicio) / duracao);
+    const suavizado = 1 - Math.pow(1 - progresso, 3);
+    elemento.textContent = Math.round(valorFinal * suavizado) + "%";
+    if(progresso < 1) requestAnimationFrame(passo);
+  }
+  requestAnimationFrame(passo);
+}
+
+/* Envolve gerarPDF() com um pequeno estado de carregamento no botão,
+   para dar feedback imediato enquanto o PDF é montado. */
+function baixarPDF(){
+  const botao = document.getElementById("botao-pdf");
+  if(!botao || botao.disabled) return;
+  const textoOriginal = botao.innerHTML;
+  botao.disabled = true;
+  botao.innerHTML = `<span class="spinner"></span> A gerar PDF…`;
+  setTimeout(() => {
+    try{
+      gerarPDF();
+    } finally {
+      botao.disabled = false;
+      botao.innerHTML = textoOriginal;
+    }
+  }, 50);
 }
 
 /* ==========================================================
@@ -2380,37 +2605,50 @@ function gerarPDF(){
 renderHome();
 
 /* ==========================================================
-   AUTO-AJUSTE DE ALTURA QUANDO EMBEBIDO NUM IFRAME (BLOGGER)
+   AUTO-AJUSTE DE ALTURA E SCROLL QUANDO EMBEBIDO NUM IFRAME (BLOGGER)
    -----------------------------------------------------------
-   Envia a altura real do conteúdo à janela pai (o post/página
-   do Blogger) sempre que o conteúdo muda de tela ou de tamanho,
-   para o iframe crescer/encolher sem barra de scroll dupla.
-
-   Também envia um pedido de "scroll para o topo do widget"
-   (mensagem tipo "simuladorMozCarreirasScrollTopo") sempre que
-   se muda de ecrã ou se abre um balão de confirmação, para que
-   a página pai role até ao início do widget em vez de deixar o
-   utilizador a meio ou no final da página.
+   Envia a altura real do conteúdo à janela pai (o post/página do
+   Blogger) sempre que o conteúdo muda de tela ou de tamanho, para o
+   iframe crescer/encolher sem barra de scroll dupla — e pede à
+   página pai para rolar suavemente até ao topo do widget sempre
+   que se muda de ecrã ou se abre um balão de confirmação, para que
+   a nova tela apareça sempre visível logo no topo, com animação.
 
    IMPORTANTE: como o iframe não tem scroll próprio (cresce até
    caber todo o conteúdo), quem tem de rolar de facto é a página
-   pai (o Blogger). O código deste ficheiro já envia as duas
-   mensagens necessárias; falta acrescentar, no script colado no
-   Blogger, o tratamento da mensagem de scroll, por exemplo:
+   pai. Este ficheiro (hospedado no GitHub) já envia as duas
+   mensagens necessárias — falta colar o código JavaScript abaixo
+   UMA VEZ no Blogger, dentro de uma etiqueta de script (Tema →
+   Editar HTML, perto do fecho do body, ou num gadget
+   "HTML/JavaScript" na mesma página do iframe). Ele encontra o
+   iframe automaticamente, não precisa de nenhum ID:
 
-     window.addEventListener("message", function(event){
-       if(!event.data) return;
-       if(event.data.tipo === "simuladorMozCarreirasAltura"){
-         // ... código existente que ajusta a altura do iframe ...
-       }
-       if(event.data.tipo === "simuladorMozCarreirasScrollTopo"){
-         var iframe = document.getElementById("ID-DO-TEU-IFRAME"); // ajusta ao teu id
-         if(iframe){
+     (function(){
+       window.addEventListener("message", function(event){
+         if(!event.data || !event.data.tipo) return;
+         // Encontra, entre todos os iframes da página, aquele que
+         // enviou a mensagem — dispensa configurar um ID manualmente.
+         var iframe = null;
+         var todos = document.getElementsByTagName("iframe");
+         for(var i=0; i<todos.length; i++){
+           if(todos[i].contentWindow === event.source){ iframe = todos[i]; break; }
+         }
+         if(!iframe) return;
+
+         if(event.data.tipo === "simuladorMozCarreirasAltura"){
+           iframe.style.height = event.data.altura + "px";
+         }
+         if(event.data.tipo === "simuladorMozCarreirasScrollTopo"){
            var y = iframe.getBoundingClientRect().top + window.pageYOffset - 16;
            window.scrollTo({ top: y, behavior: "smooth" });
          }
-       }
-     });
+       });
+     })();
+
+   E no local onde o iframe é colado no post/página do Blogger, usa
+   um iframe a apontar para a página publicada no GitHub Pages, com
+   largura 100%, sem borda, "scrolling" desligado e carregamento
+   "lazy" — sem scrolling próprio, para não haver scroll duplo.
    ========================================================== */
 (function(){
   if(window.self === window.top) return; // só corre dentro de um iframe
