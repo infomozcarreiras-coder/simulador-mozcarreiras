@@ -128,9 +128,22 @@
     color:#fff;
     position:sticky;
     top:0;
-    z-index:30;
+    z-index:9999;
     box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 10px rgba(0,0,0,0.10);
     transition:box-shadow 0.25s ease;
+  }
+  /* No mobile o cabeçalho do simulador fica fixo, ocupando toda a largura do ecrã,
+     substituindo visualmente o cabeçalho do site nesta página. */
+  @media(max-width:768px){
+    .mc-exam-app .topo{
+      position:fixed;
+      top:0; left:0; right:0;
+      width:100%;
+      margin:0;
+    }
+    .mc-exam-app{
+      padding-top:var(--mc-topo-altura, 76px);
+    }
   }
   .mc-exam-app .topo.elevado{box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 22px rgba(0,0,0,0.20);}
   .mc-exam-app .topo-inner{
@@ -2017,6 +2030,24 @@ function mostrarTela(id){
   }
   window.addEventListener("scroll", actualizarElevacaoTopo, {passive:true});
   actualizarElevacaoTopo();
+
+  // No mobile o cabeçalho fica fixo (position:fixed); esta função mede a altura
+  // real do cabeçalho e ajusta o espaçamento do conteúdo para nada ficar escondido.
+  function ajustarEspacoTopoFixo(){
+    if(!topo) return;
+    const app = document.querySelector(".mc-exam-app");
+    if(!app) return;
+    if(window.matchMedia("(max-width:768px)").matches){
+      app.style.setProperty("--mc-topo-altura", topo.offsetHeight + "px");
+    } else {
+      app.style.removeProperty("--mc-topo-altura");
+    }
+  }
+  window.addEventListener("resize", ajustarEspacoTopoFixo);
+  ajustarEspacoTopoFixo();
+  if(window.ResizeObserver && topo){
+    new ResizeObserver(ajustarEspacoTopoFixo).observe(topo);
+  }
 
   document.addEventListener("click", function(evento){
     const btn = evento.target.closest(".mc-exam-app .btn");
