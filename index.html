@@ -231,7 +231,6 @@
   .mc-exam-app .hero .eyebrow::after{content:""; width:6px; height:6px; border-radius:50%; background:var(--dourado); display:inline-block;}
   .mc-exam-app .hero h1{font-size:var(--tp-sm); color:var(--verde-escuro); line-height:1.5; text-align:left; hyphens:none; -webkit-hyphens:none; font-weight:500; overflow-wrap:break-word; word-break:normal; max-width:58ch;}
   .mc-exam-app .hero p{color:var(--cinza); font-size:var(--tp-md); margin-top:var(--sp-3); max-width:52ch; line-height:1.65; text-align:left; hyphens:none; -webkit-hyphens:none;}
-  .mc-exam-app .visitas-totais{margin-top:var(--sp-3); font-size:11.5px; color:var(--cinza-claro); font-weight:500;}
   @media(max-width:480px){
     .mc-exam-app .hero{padding:var(--sp-6) 0 var(--sp-2);}
     .mc-exam-app .hero .eyebrow{justify-content:center;}
@@ -589,12 +588,12 @@
   </div>
   <nav id="menuHamburguerPainel" class="menu-hamburguer-painel" aria-label="Menu Moz Carreiras">
     <div class="menu-hamburguer-inner">
-      <a href="https://mozcarreiras.blogspot.com/p/exames-de-admissao.html" target="_top" class="link-ativo">Exames</a>
       <a href="https://mozcarreiras.blogspot.com/search/label/Not%C3%ADcias" target="_top">Notícias</a>
       <a href="https://mozcarreiras.blogspot.com/p/contactos.html" target="_top">Contactos</a>
       <a href="https://mozcarreiras.blogspot.com/p/bolsas-de-estudo.html" target="_top">Bolsas de Estudo</a>
-      <a href="https://mozcarreiras.blogspot.com/search/label/Dicas" target="_top">Dicas de Carreira</a>
       <a href="https://mozcarreiras.blogspot.com/" target="_top">Vagas de Emprego</a>
+      <a href="https://mozcarreiras.blogspot.com/search/label/Dicas" target="_top">Dicas de Carreira</a>
+      <a href="https://mozcarreiras.blogspot.com/p/exames-de-admissao.html" target="_top" class="link-ativo">Exames de Admissão</a>
     </div>
   </nav>
 </div>
@@ -606,7 +605,6 @@
     <div class="hero">
       <div class="eyebrow">Preparação para exames de admissão</div>
       <h1>Prepare-se com conteúdos de qualidade. A nossa plataforma compila exames reais aplicados em diversas instituições de ensino em Moçambique, cobrindo desde o ensino secundário, técnico-profissional até ao nível superior, facilitando o treino prático e a familiarização com os modelos de exame das diferentes instituições.</h1>
-      <div id="visitas-totais-simulador" class="visitas-totais"></div>
     </div>
     <div id="lista-universidades" class="lista-universidades"></div>
   </div>
@@ -2207,88 +2205,6 @@ function totalExamesUniversidade(u){
 }
 
 /* ==========================================================
-   CONTADOR DE VISITAS
-   -----------------------------------------------------------
-   Regista e mostra o número de visitas ao simulador (no total),
-   a cada universidade/instituto, a cada disciplina e a cada exame.
-
-   Usa o serviço gratuito CountAPI (https://countapi.xyz), que
-   não exige conta nem chave — cada contador é identificado por
-   um "namespace" (único para este simulador) + uma "chave"
-   (ex: o id da universidade). Funciona por simples pedidos GET:
-     .../hit/namespace/chave  → regista +1 visita e devolve o total
-     .../get/namespace/chave  → só consulta o total, sem somar
-
-   Se o serviço estiver em baixo ou o pedido falhar (ex: sem rede,
-   bloqueado por um bloqueador de anúncios), os números simplesmente
-   não aparecem — nunca trava nem afeta o resto do simulador.
-
-   NOTA: para trocar de serviço de contagem no futuro, basta ajustar
-   as duas funções abaixo (contadorObter / contadorRegistarVisita).
-   ========================================================== */
-const CONTADOR_NAMESPACE = "mozcarreiras-simulador-exames-v1";
-
-async function contadorObter(chave){
-  try{
-    const resp = await fetch(`https://api.countapi.xyz/get/${CONTADOR_NAMESPACE}/${chave}`);
-    if(!resp.ok) return null;
-    const dados = await resp.json();
-    return typeof dados.value === "number" ? dados.value : null;
-  }catch(erro){ return null; }
-}
-
-async function contadorRegistarVisita(chave){
-  try{
-    const resp = await fetch(`https://api.countapi.xyz/hit/${CONTADOR_NAMESPACE}/${chave}`);
-    if(!resp.ok) return null;
-    const dados = await resp.json();
-    return typeof dados.value === "number" ? dados.value : null;
-  }catch(erro){ return null; }
-}
-
-function formatarVisitas(n){
-  if(n === null || n === undefined) return null;
-  const numeroFormatado = n.toLocaleString("pt-PT");
-  return n === 1 ? "1 visita" : `${numeroFormatado} visitas`;
-}
-
-/* Regista a visita geral ao simulador uma única vez por carregamento
-   da página, e mostra o total acumulado assim que a resposta chega. */
-function registarVisitaTotalSimulador(){
-  const el = document.getElementById("visitas-totais-simulador");
-  contadorRegistarVisita("total-simulador").then(valor => {
-    if(el && valor !== null){ el.textContent = `👁 ${formatarVisitas(valor)} ao simulador`; }
-  });
-}
-
-/* Consulta (sem somar) o número de visitas de cada universidade e
-   actualiza os cartões já renderizados na tela inicial. */
-function actualizarVisitasUniversidades(){
-  UNIVERSIDADES.forEach(u => {
-    const el = document.getElementById(`visitas-uni-${u.id}`);
-    if(!el) return;
-    contadorObter(`uni-${u.id}`).then(valor => {
-      const texto = formatarVisitas(valor || 0);
-      if(texto) el.textContent = ` · 👁 ${texto}`;
-    });
-  });
-}
-
-/* Consulta (sem somar) o número de visitas de cada disciplina com
-   exames, dentro da universidade actualmente aberta. */
-function actualizarVisitasDisciplinas(){
-  universidadeAtual.disciplinas.forEach(d => {
-    if(d.exames.length === 0) return;
-    const el = document.getElementById(`visitas-disc-${universidadeAtual.id}-${d.id}`);
-    if(!el) return;
-    contadorObter(`disc-${universidadeAtual.id}-${d.id}`).then(valor => {
-      const texto = formatarVisitas(valor || 0);
-      if(texto) el.textContent = ` · 👁 ${texto}`;
-    });
-  });
-}
-
-/* ==========================================================
    TELA INICIAL — lista de universidades
    ========================================================== */
 function renderHome(){
@@ -2305,13 +2221,12 @@ function renderHome(){
       <div class="info">
         <h3>${u.nome}</h3>
         <div class="meta">
-          <span>📚 ${numDisciplinasComExame} disciplina${numDisciplinasComExame === 1 ? '' : 's'} com exames · ${totalExamesUniversidade(u)} exame${totalExamesUniversidade(u) === 1 ? '' : 's'}<span id="visitas-uni-${u.id}"></span></span>
+          <span>📚 ${numDisciplinasComExame} disciplina${numDisciplinasComExame === 1 ? '' : 's'} com exames · ${totalExamesUniversidade(u)} exame${totalExamesUniversidade(u) === 1 ? '' : 's'}</span>
         </div>
       </div>
       <div class="seta">→</div>
     </div>
   `;}).join("");
-  actualizarVisitasUniversidades();
 }
 
 /* ==========================================================
@@ -2323,7 +2238,6 @@ function abrirUniversidade(indice){
   document.getElementById("uni-nome").textContent = universidadeAtual.nome;
   renderDisciplinasLista();
   mostrarTela("tela-universidade");
-  contadorRegistarVisita(`uni-${universidadeAtual.id}`);
 }
 
 function renderDisciplinasLista(){
@@ -2339,12 +2253,11 @@ function renderDisciplinasLista(){
       <div class="icone">${iniciais(d.nome)}</div>
       <div class="info">
         <h3>${d.nome}</h3>
-        <div class="meta">${temExames ? `${d.exames.length} exame${d.exames.length === 1 ? '' : 's'} disponível${d.exames.length === 1 ? '' : 'is'}` : 'Ainda sem exames'}${temExames ? `<span id="visitas-disc-${universidadeAtual.id}-${d.id}"></span>` : ''}</div>
+        <div class="meta">${temExames ? `${d.exames.length} exame${d.exames.length === 1 ? '' : 's'} disponível${d.exames.length === 1 ? '' : 'is'}` : 'Ainda sem exames'}</div>
       </div>
       ${temExames ? '<div class="seta">→</div>' : ''}
     </div>
   `;}).join("");
-  actualizarVisitasDisciplinas();
 }
 
 /* ==========================================================
@@ -2357,7 +2270,6 @@ function abrirDisciplina(indice){
   document.getElementById("disc-nome").textContent = disciplinaAtual.nome;
   renderExamesDaDisciplina();
   mostrarTela("tela-disciplina");
-  contadorRegistarVisita(`disc-${universidadeAtual.id}-${disciplinaAtual.id}`);
 }
 
 function renderExamesDaDisciplina(){
@@ -2374,24 +2286,9 @@ function renderExamesDaDisciplina(){
         <span>📅 ${ex.ano}</span>
         <span>⏱ ${ex.duracaoMinutos} min</span>
         <span>📝 ${ex.questoes.length} perguntas</span>
-        <span id="visitas-exame-${ex.id}"></span>
       </div>
     </div>
   `).join("");
-  actualizarVisitasExames();
-}
-
-/* Consulta (sem somar) o número de visitas de cada exame da
-   disciplina actualmente aberta. */
-function actualizarVisitasExames(){
-  disciplinaAtual.exames.forEach(ex => {
-    const el = document.getElementById(`visitas-exame-${ex.id}`);
-    if(!el) return;
-    contadorObter(`exame-${ex.id}`).then(valor => {
-      const texto = formatarVisitas(valor || 0);
-      if(texto) el.textContent = ` · 👁 ${texto}`;
-    });
-  });
 }
 
 /* ==========================================================
@@ -2406,7 +2303,6 @@ function abrirDetalhes(indice){
   document.getElementById("det-numquestoes").textContent = exameAtual.questoes.length;
   document.getElementById("det-instrucoes").innerHTML = exameAtual.instrucoes.map(i => `<li>${i}</li>`).join("");
   mostrarTela("tela-detalhes");
-  contadorRegistarVisita(`exame-${exameAtual.id}`);
 }
 
 function pedirConfirmacaoInicio(){
@@ -2855,7 +2751,6 @@ function gerarPDF(){
    INICIALIZAÇÃO
    ========================================================== */
 renderHome();
-registarVisitaTotalSimulador();
 
 /* ==========================================================
    SUBSTITUIÇÃO DO CABEÇALHO DO SITE PELO CABEÇALHO DO SIMULADOR
