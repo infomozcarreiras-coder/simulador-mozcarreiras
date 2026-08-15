@@ -179,8 +179,13 @@
     display:flex; align-items:center; gap:8px;
   }
   .mc-exam-app .hero .eyebrow::before{content:""; width:16px; height:1.5px; background:var(--dourado); display:inline-block;}
-  .mc-exam-app .hero h1{font-size:var(--tp-xxl); color:var(--verde-escuro); line-height:1.22; text-align:left; hyphens:none; -webkit-hyphens:none; font-weight:600;}
+  .mc-exam-app .hero h1{font-size:var(--tp-xxl); color:var(--verde-escuro); line-height:1.22; text-align:left; hyphens:none; -webkit-hyphens:none; font-weight:600; overflow-wrap:break-word; word-break:normal; max-width:22ch;}
   .mc-exam-app .hero p{color:var(--cinza); font-size:var(--tp-md); margin-top:var(--sp-3); max-width:52ch; line-height:1.65; text-align:left; hyphens:none; -webkit-hyphens:none;}
+  @media(max-width:480px){
+    .mc-exam-app .hero{padding:var(--sp-6) 4px var(--sp-2);}
+    .mc-exam-app .hero h1{font-size:clamp(22px, 6.2vw, 27px); line-height:1.28; max-width:20ch;}
+    .mc-exam-app .hero p{font-size:var(--tp-sm); line-height:1.6;}
+  }
 
   .mc-exam-app .voltar{
     background:none; border:none; color:var(--verde); font-weight:600;
@@ -533,7 +538,7 @@
   <div id="tela-inicio">
     <div class="hero">
       <div class="eyebrow">Preparação para exames de admissão</div>
-      <h1>Pratica com exames reais de universidades&nbsp;moçambicanas</h1>
+      <h1>Pratica com exames reais de universidades moçambicanas</h1>
       <p>Escolhe uma universidade pública e depois a disciplina que queres praticar. Cada simulação tem o tempo oficial, correção automática e explicação detalhada de todas as respostas.</p>
     </div>
     <div id="lista-universidades" class="lista-universidades"></div>
@@ -2605,6 +2610,23 @@ function gerarPDF(){
 renderHome();
 
 /* ==========================================================
+   SUBSTITUIÇÃO DO CABEÇALHO DO SITE PELO CABEÇALHO DO SIMULADOR
+   -----------------------------------------------------------
+   Quando este widget está embebido num iframe (ex: no Blogger),
+   pede à página pai, assim que carrega, para ocultar o cabeçalho
+   do site/blog — para que apareça apenas o cabeçalho do próprio
+   simulador (".topo" acima), evitando dois cabeçalhos sobrepostos
+   na mesma página. É preciso colar o script de instalação lá em
+   baixo (junto ao de auto-ajuste de altura) UMA VEZ no Blogger.
+   ========================================================== */
+(function(){
+  if(window.self === window.top) return; // só corre dentro de um iframe
+  window.addEventListener("load", function(){
+    window.parent.postMessage({ tipo: "simuladorMozCarreirasOcultarCabecalhoSite" }, "*");
+  });
+})();
+
+/* ==========================================================
    AUTO-AJUSTE DE ALTURA E SCROLL QUANDO EMBEBIDO NUM IFRAME (BLOGGER)
    -----------------------------------------------------------
    Envia a altura real do conteúdo à janela pai (o post/página do
@@ -2616,14 +2638,22 @@ renderHome();
 
    IMPORTANTE: como o iframe não tem scroll próprio (cresce até
    caber todo o conteúdo), quem tem de rolar de facto é a página
-   pai. Este ficheiro (hospedado no GitHub) já envia as duas
-   mensagens necessárias — falta colar o código JavaScript abaixo
-   UMA VEZ no Blogger, dentro de uma etiqueta de script (Tema →
-   Editar HTML, perto do fecho do body, ou num gadget
-   "HTML/JavaScript" na mesma página do iframe). Ele encontra o
-   iframe automaticamente, não precisa de nenhum ID:
+   pai. Este ficheiro (hospedado no GitHub) já envia as três
+   mensagens necessárias (altura, scroll e ocultar cabeçalho do
+   site) — falta colar o código JavaScript abaixo UMA VEZ no
+   Blogger, dentro de uma etiqueta de script (Tema → Editar HTML,
+   perto do fecho do body, ou num gadget "HTML/JavaScript" na
+   mesma página do iframe). Ele encontra o iframe automaticamente,
+   não precisa de nenhum ID:
 
      (function(){
+       // AJUSTA AQUI: o(s) seletor(es) CSS do cabeçalho do teu
+       // site/blog (o que aparece por cima do iframe do simulador).
+       // Exemplos comuns em temas do Blogger: "#header", ".header",
+       // "header", "#Header1", ".header-outer". Podes indicar mais
+       // do que um seletor, separado por vírgula.
+       var SELETOR_CABECALHO_SITE = "#header";
+
        window.addEventListener("message", function(event){
          if(!event.data || !event.data.tipo) return;
          // Encontra, entre todos os iframes da página, aquele que
@@ -2641,6 +2671,14 @@ renderHome();
          if(event.data.tipo === "simuladorMozCarreirasScrollTopo"){
            var y = iframe.getBoundingClientRect().top + window.pageYOffset - 16;
            window.scrollTo({ top: y, behavior: "smooth" });
+         }
+         if(event.data.tipo === "simuladorMozCarreirasOcultarCabecalhoSite"){
+           // Substitui o cabeçalho do site pelo cabeçalho do
+           // simulador: oculta o(s) elemento(s) do cabeçalho do
+           // blog enquanto o widget estiver na página.
+           document.querySelectorAll(SELETOR_CABECALHO_SITE).forEach(function(el){
+             el.style.display = "none";
+           });
          }
        });
      })();
