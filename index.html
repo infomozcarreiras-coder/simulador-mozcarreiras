@@ -17,17 +17,21 @@
     --erro: #B3261E;
     --erro-bg: #FBEBEA;
   }
+  html, body{
+    background:transparent !important;
+    margin:0; padding:0;
+  }
   .mc-exam-app *{box-sizing:border-box;}
   .mc-exam-app{margin:0;padding:0;}
   .mc-exam-app{
-    background:var(--creme);
+    background:transparent;
     color:var(--carvao);
-    font-family:'IBM Plex Sans', sans-serif;
+    font-family:'IBM Plex Sans', sans-serif !important;
     -webkit-font-smoothing:antialiased;
   }
   .mc-exam-app .hidden{display:none !important;}
-  .mc-exam-app h1,.mc-exam-app h2,.mc-exam-app h3{font-family:'Fraunces', serif; margin:0; letter-spacing:-0.01em;}
-  .mc-exam-app .mono{font-family:'IBM Plex Mono', monospace;}
+  .mc-exam-app h1,.mc-exam-app h2,.mc-exam-app h3{font-family:'Fraunces', serif !important; margin:0; letter-spacing:-0.01em;}
+  .mc-exam-app .mono{font-family:'IBM Plex Mono', monospace !important;}
 
   .mc-exam-app /* Cabeçalho global */
   .topo{
@@ -40,19 +44,20 @@
     position:relative;
     box-shadow:0 2px 10px rgba(0,0,0,0.12);
   }
-  .mc-exam-app .topo .marca{display:flex; align-items:center; gap:10px;}
+  .mc-exam-app .topo{padding:22px 20px;}
+  .mc-exam-app .topo .marca{display:flex; align-items:center; gap:12px;}
   .mc-exam-app .topo .marca .pastilha{
-    width:34px;height:34px;border-radius:8px;
+    width:52px;height:52px;border-radius:12px;flex-shrink:0;
     background:linear-gradient(150deg,var(--dourado),var(--dourado-claro));
     display:flex;align-items:center;justify-content:center;
-    color:var(--verde-escuro); font-weight:700; font-family:'Fraunces',serif; font-size:16px;
+    color:var(--verde-escuro); font-weight:700; font-family:'Fraunces',serif !important; font-size:26px;
   }
-  .mc-exam-app .topo .marca-texto{line-height:1.1;}
-  .mc-exam-app .topo .marca-texto strong{display:block; font-size:15px; font-weight:600;}
-  .mc-exam-app .topo .marca-texto span{font-size:11px; opacity:0.75; letter-spacing:0.04em; text-transform:uppercase;}
+  .mc-exam-app .topo .marca-texto{line-height:1.2;}
+  .mc-exam-app .topo .marca-texto strong{display:block; font-size:19px; font-weight:600; font-family:'IBM Plex Sans',sans-serif !important;}
+  .mc-exam-app .topo .marca-texto span{font-size:13px; opacity:0.8; letter-spacing:0.05em; text-transform:uppercase; font-family:'IBM Plex Sans',sans-serif !important;}
 
   .mc-exam-app .cronometro{
-    font-family:'IBM Plex Mono', monospace;
+    font-family:'IBM Plex Mono', monospace !important;
     background:rgba(255,255,255,0.08);
     border:1px solid rgba(255,255,255,0.18);
     padding:8px 14px;
@@ -69,16 +74,16 @@
   }
   @keyframes pulsar{0%,100%{opacity:1;}50%{opacity:0.65;}}
 
-  .mc-exam-app .mc-sim-container{max-width:100%; width:100%; margin:0; padding:20px 0 60px; box-sizing:border-box;}
+  .mc-exam-app .mc-sim-container{max-width:100%; width:100%; margin:0; padding:20px 16px 24px; box-sizing:border-box;}
 
   .mc-exam-app /* Cabeçalhos de secção reutilizáveis */
-  .hero{padding:36px 4px 8px;}
+  .hero{padding:28px 4px 8px;}
   .mc-exam-app .hero .eyebrow{
-    font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
-    color:var(--verde); font-weight:600; margin-bottom:10px;
+    font-size:13px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--verde); font-weight:600; margin-bottom:12px;
   }
-  .mc-exam-app .hero h1{font-size:30px; color:var(--verde-escuro); line-height:1.15;}
-  .mc-exam-app .hero p{color:var(--cinza); font-size:15px; margin-top:10px; max-width:52ch;}
+  .mc-exam-app .hero h1{font-size:32px; color:var(--verde-escuro); line-height:1.18; text-align:justify;}
+  .mc-exam-app .hero p{color:var(--cinza); font-size:15.5px; margin-top:12px; max-width:52ch; line-height:1.5;}
 
   .mc-exam-app .voltar{
     background:none; border:none; color:var(--verde); font-weight:600;
@@ -109,7 +114,7 @@
   }
   .mc-exam-app .cartao-disciplina.tem-exames .icone{background:linear-gradient(150deg,var(--verde),var(--verde-escuro)); color:var(--dourado-claro);}
   .mc-exam-app .cartao-disciplina .info{flex:1; min-width:0;}
-  .mc-exam-app .cartao-disciplina h3{font-size:16px; color:var(--verde-escuro); line-height:1.25; font-weight:600; font-family:'IBM Plex Sans',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+  .mc-exam-app .cartao-disciplina h3{font-size:16px; color:var(--verde-escuro); line-height:1.25; font-weight:600; font-family:'IBM Plex Sans',sans-serif !important; white-space:normal; overflow-wrap:break-word; max-width:100%;}
   .mc-exam-app .cartao-disciplina .meta{font-size:12.5px; color:var(--cinza); margin-top:4px;}
   .mc-exam-app .cartao-disciplina .seta{color:var(--dourado); font-size:18px; flex-shrink:0;}
   .mc-exam-app .cartao-disciplina.vazia{opacity:0.6; cursor:default;}
@@ -117,30 +122,30 @@
   .mc-exam-app .cartao-universidade{
     background:#fff;
     border:1px solid var(--linha);
-    border-radius:14px;
-    padding:20px;
+    border-radius:16px;
+    padding:20px 22px;
     cursor:pointer;
-    display:flex; align-items:center; gap:16px;
+    display:flex; align-items:center; gap:18px;
     transition:border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   }
   .mc-exam-app .cartao-universidade:active{transform:scale(0.99);}
   .mc-exam-app .cartao-universidade:hover{border-color:var(--dourado); box-shadow:0 6px 18px rgba(11,61,46,0.08);}
   .mc-exam-app .cartao-universidade .emblema{
-    flex-shrink:0; min-width:52px; width:auto; height:52px; border-radius:12px;
+    flex-shrink:0; min-width:72px; width:auto; height:72px; border-radius:16px;
     background:linear-gradient(150deg,var(--verde),var(--verde-escuro));
     color:var(--dourado-claro); display:flex; align-items:center; justify-content:center;
-    font-family:'Fraunces',serif !important; font-weight:700; font-size:17px;
+    font-family:'Fraunces',serif !important; font-weight:700; font-size:19px;
     overflow:hidden; white-space:nowrap; text-align:center; box-sizing:border-box; padding:0 8px; line-height:1;
   }
   .mc-exam-app .cartao-universidade .info{flex:1; min-width:0;}
-  .mc-exam-app .cartao-universidade h3{font-size:17px; color:var(--verde-escuro); line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+  .mc-exam-app .cartao-universidade h3{font-size:19px; font-weight:700; color:var(--verde-escuro); line-height:1.3; white-space:normal; overflow-wrap:break-word; max-width:100%;}
   .mc-exam-app .cartao-universidade .meta{
-    display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; font-size:12.5px; color:var(--cinza);
+    display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; font-size:14px; color:var(--cinza);
   }
-  .mc-exam-app .cartao-universidade .seta{color:var(--dourado); font-size:20px; flex-shrink:0;}
+  .mc-exam-app .cartao-universidade .seta{color:var(--dourado); font-size:22px; flex-shrink:0;}
 
   .mc-exam-app .estado-vazio{
-    text-align:center; padding:50px 20px; color:var(--cinza);
+    text-align:center; padding:30px 20px; color:var(--cinza);
     border:1px dashed var(--linha); border-radius:14px; margin-top:20px;
   }
 
@@ -155,8 +160,8 @@
     display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif !important; font-weight:700; font-size:18px;
     overflow:hidden; white-space:nowrap; text-align:center; box-sizing:border-box; padding:0 8px; line-height:1;
   }
-  .mc-exam-app .cabecalho-universidade .eyebrow{color:var(--dourado-claro); font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
-  .mc-exam-app .cabecalho-universidade h2{font-size:21px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+  .mc-exam-app .cabecalho-universidade .eyebrow{color:var(--dourado-claro); font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; white-space:normal; overflow-wrap:break-word; max-width:100%;}
+  .mc-exam-app .cabecalho-universidade h2{font-size:21px; margin-top:4px; white-space:normal; overflow-wrap:break-word; max-width:100%;}
   .mc-exam-app .cabecalho-universidade-texto{flex:1; min-width:0;}
 
   .mc-exam-app .lista-exames{display:flex; flex-direction:column; gap:14px;}
@@ -222,7 +227,7 @@
     background:var(--verde); color:#fff; border:none;
     padding:14px 22px; border-radius:10px; font-size:15px; font-weight:600;
     cursor:pointer; width:100%; transition:background 0.15s, transform 0.1s;
-    font-family:'IBM Plex Sans', sans-serif;
+    font-family:'IBM Plex Sans', sans-serif !important;
   }
   .mc-exam-app .btn:hover{background:var(--verde-escuro);}
   .mc-exam-app .btn:active{transform:scale(0.98);}
@@ -237,7 +242,8 @@
   .mc-exam-app /* Tela de exame */
   .barra-progresso-wrap{
     background:#fff; padding:14px 18px; border-bottom:1px solid var(--linha);
-    position:sticky; top:var(--header-h, 64px); z-index:15;
+    position:sticky; top:0; z-index:15;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
   }
   .mc-exam-app .barra-progresso-texto{
     display:flex; justify-content:space-between; font-size:12.5px; color:var(--cinza); margin-bottom:7px; font-weight:500;
@@ -252,7 +258,7 @@
   .mc-exam-app .nav-q{
     aspect-ratio:1; border-radius:8px; border:1.5px solid var(--linha);
     background:#fff; font-size:13px; font-weight:600; color:var(--cinza);
-    cursor:pointer; font-family:'IBM Plex Mono', monospace;
+    cursor:pointer; font-family:'IBM Plex Mono', monospace !important;
   }
   .mc-exam-app .nav-q.respondida{background:var(--sucesso-bg); border-color:var(--sucesso); color:var(--sucesso);}
   .mc-exam-app .nav-q.atual{background:var(--verde); border-color:var(--verde); color:#fff;}
@@ -262,7 +268,7 @@
     padding:24px; margin-top:20px;
   }
   .mc-exam-app .cartao-questao .numero{
-    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--dourado);
+    font-family:'IBM Plex Mono', monospace !important; font-size:12px; color:var(--dourado);
     font-weight:600; letter-spacing:0.04em; margin-bottom:10px;
   }
   .mc-exam-app .cartao-questao .enunciado{font-size:16.5px; line-height:1.6; color:var(--carvao); margin-bottom:20px;}
@@ -278,7 +284,7 @@
   .mc-exam-app .opcao .letra{
     flex-shrink:0; width:26px; height:26px; border-radius:50%;
     border:1.5px solid var(--linha); display:flex; align-items:center; justify-content:center;
-    font-size:12.5px; font-weight:700; font-family:'IBM Plex Mono', monospace; color:var(--cinza);
+    font-size:12.5px; font-weight:700; font-family:'IBM Plex Mono', monospace !important; color:var(--cinza);
   }
   .mc-exam-app .opcao.selecionada .letra{background:var(--verde); border-color:var(--verde); color:#fff;}
 
@@ -302,6 +308,7 @@
   @media(min-width:540px){
      .mc-exam-app .modal-fundo{align-items:center;}
      .mc-exam-app .modal{border-radius:16px;}
+     .mc-exam-app .mc-sim-container{padding-left:28px; padding-right:28px;}
   }
   @keyframes subir{from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;}}
   .mc-exam-app .modal h3{font-size:19px; color:var(--verde-escuro); margin-bottom:10px;}
@@ -315,13 +322,13 @@
     text-align:center; margin-top:10px;
   }
   .mc-exam-app .resumo-resultado .universidade{font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--dourado-claro); font-weight:600;}
-  .mc-exam-app .resumo-resultado .nota{font-family:'Fraunces', serif; font-size:56px; font-weight:600; margin:14px 0 4px;}
+  .mc-exam-app .resumo-resultado .nota{font-family:'Fraunces', serif !important; font-size:56px; font-weight:600; margin:14px 0 4px;}
   .mc-exam-app .resumo-resultado .fracao{font-size:14px; opacity:0.8; margin-bottom:16px;}
   .mc-exam-app .resumo-resultado .selo{display:inline-block; padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; background:rgba(255,255,255,0.15);}
 
   .mc-exam-app .estatisticas-rapidas{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:16px;}
   .mc-exam-app .estatisticas-rapidas .item{background:#fff; border:1px solid var(--linha); border-radius:12px; padding:14px 8px; text-align:center;}
-  .mc-exam-app .estatisticas-rapidas .item .valor{font-size:22px; font-weight:700; font-family:'Fraunces',serif;}
+  .mc-exam-app .estatisticas-rapidas .item .valor{font-size:22px; font-weight:700; font-family:'Fraunces',serif !important;}
   .mc-exam-app .estatisticas-rapidas .item.certas .valor{color:var(--sucesso);}
   .mc-exam-app .estatisticas-rapidas .item.erradas .valor{color:var(--erro);}
   .mc-exam-app .estatisticas-rapidas .item.tempo .valor{color:var(--verde); font-size:17px;}
@@ -338,7 +345,7 @@
   .mc-exam-app .item-correcao.certa{border-left-color:var(--sucesso);}
   .mc-exam-app .item-correcao.errada{border-left-color:var(--erro);}
   .mc-exam-app .item-correcao .cabecalho-item{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
-  .mc-exam-app .item-correcao .numero{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--cinza); font-weight:600;}
+  .mc-exam-app .item-correcao .numero{font-family:'IBM Plex Mono',monospace !important; font-size:12px; color:var(--cinza); font-weight:600;}
   .mc-exam-app .tag-resultado{font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px;}
   .mc-exam-app .tag-resultado.certa{background:var(--sucesso-bg); color:var(--sucesso);}
   .mc-exam-app .tag-resultado.errada{background:var(--erro-bg); color:var(--erro);}
@@ -350,18 +357,16 @@
   .mc-exam-app .explicacao{margin-top:12px; background:var(--creme); border-radius:10px; padding:14px 16px; font-size:14px; line-height:1.65; color:var(--carvao);}
   .mc-exam-app .explicacao .rotulo-exp{font-weight:700; color:var(--verde); display:block; margin-bottom:4px; font-size:12.5px; text-transform:uppercase; letter-spacing:0.04em;}
 
-  .mc-exam-app footer.rodape-app{text-align:center; padding:30px 20px 50px; color:var(--cinza); font-size:12.5px;}
+  .mc-exam-app footer.rodape-app{text-align:center; padding:16px 20px 30px; color:var(--cinza); font-size:12.5px;}
 </style>
 
 <div class="mc-exam-app">
 <div class="topo">
   <div class="marca">
-    <div class="pastilha">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 3 1 8.5 12 14l9-4.64V16h1V8.5L12 3zm0 8L4 7l8-4 8 4-8 4zm-6 1.18V15c0 1.66 2.69 3 6 3s6-1.34 6-3v-2.82l-6 3.09-6-3.09z"/></svg>
-    </div>
+    <div class="pastilha">🎓</div>
     <div class="marca-texto">
       <strong>Moz Carreiras</strong>
-      <span>Simulador de Exames</span>
+      <span>Simulador de Admissão</span>
     </div>
   </div>
   <div id="cronometro-topo" class="cronometro hidden">
@@ -375,7 +380,7 @@
   <div id="tela-inicio">
     <div class="hero">
       <div class="eyebrow">Preparação para exames de admissão</div>
-      <h1>Pratica com exames reais de universidades moçambicanas</h1>
+      <h1>Pratica com exames reais de universidades&nbsp;moçambicanas</h1>
       <p>Escolhe uma universidade pública e depois a disciplina que queres praticar. Cada simulação tem o tempo oficial, correção automática e explicação detalhada de todas as respostas.</p>
     </div>
     <div id="lista-universidades" class="lista-universidades"></div>
@@ -1799,6 +1804,16 @@ function irParaTopo(){
   window.scrollTo(0,0);
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
+  // Quando o widget está dentro de um iframe (ex: embebido no Blogger) que se
+  // auto-ajusta à altura do conteúdo, o iframe normalmente não tem scroll
+  // próprio — quem controla o que está visível é a página que o envolve.
+  // Por isso, além de tentarmos rolar o próprio documento do iframe, também
+  // pedimos à página pai que role até ao topo do widget, para que o novo
+  // ecrã (ou o balão de confirmação) apareça sempre logo acima, visível de
+  // imediato, sem o utilizador ter de rolar manualmente.
+  if(window.self !== window.top){
+    window.parent.postMessage({ tipo: "simuladorMozCarreirasScrollTopo" }, "*");
+  }
 }
 
 function mostrarTela(id){
@@ -2110,6 +2125,12 @@ function abrirModal({titulo, texto, botoes}){
     btn.onclick = b.accao;
     acoesEl.appendChild(btn);
   });
+  // Garante que o balão de confirmação (ex: "Iniciar agora") fica sempre
+  // visível logo acima, mesmo que o botão que o abriu esteja mais abaixo
+  // na página — rola tanto o próprio documento como (se aplicável) pede
+  // à página pai que role até ao topo do widget.
+  irParaTopo();
+  requestAnimationFrame(irParaTopo);
 }
 function fecharModal(){
   document.getElementById("area-modal").innerHTML = "";
@@ -2295,8 +2316,32 @@ renderHome();
    Envia a altura real do conteúdo à janela pai (o post/página
    do Blogger) sempre que o conteúdo muda de tela ou de tamanho,
    para o iframe crescer/encolher sem barra de scroll dupla.
-   O código correspondente a colar no Blogger está nas
-   instruções de publicação.
+
+   Também envia um pedido de "scroll para o topo do widget"
+   (mensagem tipo "simuladorMozCarreirasScrollTopo") sempre que
+   se muda de ecrã ou se abre um balão de confirmação, para que
+   a página pai role até ao início do widget em vez de deixar o
+   utilizador a meio ou no final da página.
+
+   IMPORTANTE: como o iframe não tem scroll próprio (cresce até
+   caber todo o conteúdo), quem tem de rolar de facto é a página
+   pai (o Blogger). O código deste ficheiro já envia as duas
+   mensagens necessárias; falta acrescentar, no script colado no
+   Blogger, o tratamento da mensagem de scroll, por exemplo:
+
+     window.addEventListener("message", function(event){
+       if(!event.data) return;
+       if(event.data.tipo === "simuladorMozCarreirasAltura"){
+         // ... código existente que ajusta a altura do iframe ...
+       }
+       if(event.data.tipo === "simuladorMozCarreirasScrollTopo"){
+         var iframe = document.getElementById("ID-DO-TEU-IFRAME"); // ajusta ao teu id
+         if(iframe){
+           var y = iframe.getBoundingClientRect().top + window.pageYOffset - 16;
+           window.scrollTo({ top: y, behavior: "smooth" });
+         }
+       }
+     });
    ========================================================== */
 (function(){
   if(window.self === window.top) return; // só corre dentro de um iframe
