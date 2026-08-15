@@ -377,6 +377,24 @@
 </style>
 </head>
 <body>
+<div id="mc-debug" style="position:fixed;top:0;left:0;right:0;z-index:999999;background:#B3261E;color:#fff;font:12px/1.4 monospace;padding:6px 8px;"></div>
+<script>
+(function(){
+  function atualizar(){
+    var d = document.getElementById('mc-debug');
+    if(!d) return;
+    d.textContent =
+      "innerWidth:" + window.innerWidth +
+      " clientWidth:" + document.documentElement.clientWidth +
+      " DPR:" + window.devicePixelRatio +
+      " iframeBoxW:" + (window.frameElement ? window.frameElement.clientWidth : "N/A(topo)");
+  }
+  window.addEventListener('resize', atualizar);
+  window.addEventListener('load', atualizar);
+  atualizar();
+  setTimeout(atualizar, 500);
+})();
+</script>
 
 <div class="mc-exam-app" lang="pt">
 <div class="topo">
