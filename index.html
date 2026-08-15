@@ -228,11 +228,13 @@
     display:flex; align-items:center; gap:8px;
   }
   .mc-exam-app .hero .eyebrow::before{content:""; width:16px; height:1.5px; background:var(--dourado); display:inline-block;}
-  .mc-exam-app .hero h1{font-size:var(--tp-sm); color:var(--verde-escuro); line-height:1.5; text-align:left; hyphens:none; -webkit-hyphens:none; font-weight:600; overflow-wrap:break-word; word-break:normal; max-width:none;}
+  .mc-exam-app .hero .eyebrow::after{content:""; width:16px; height:1.5px; background:var(--dourado); display:inline-block;}
+  .mc-exam-app .hero h1{font-size:var(--tp-sm); color:var(--verde-escuro); line-height:1.5; text-align:left; hyphens:none; -webkit-hyphens:none; font-weight:500; overflow-wrap:break-word; word-break:normal; max-width:none;}
   .mc-exam-app .hero p{color:var(--cinza); font-size:var(--tp-md); margin-top:var(--sp-3); max-width:52ch; line-height:1.65; text-align:left; hyphens:none; -webkit-hyphens:none;}
   @media(max-width:480px){
     .mc-exam-app .hero{padding:var(--sp-6) 0 var(--sp-2);}
-    .mc-exam-app .hero h1{font-size:clamp(12.5px, 3.2vw, 14px); line-height:1.6; max-width:none;}
+    .mc-exam-app .hero .eyebrow{justify-content:center;}
+    .mc-exam-app .hero h1{font-size:clamp(12.5px, 3.2vw, 14px); line-height:1.6; max-width:none; text-align:center;}
     .mc-exam-app .hero p{font-size:var(--tp-sm); line-height:1.6;}
   }
 
@@ -247,63 +249,63 @@
 
   .mc-exam-app /* Tela inicial — lista de universidades */
   .lista-universidades{display:flex; flex-direction:column; gap:14px; margin-top:24px;}
-  .mc-exam-app .lista-disciplinas{display:flex; flex-direction:column; gap:14px;}
+  .mc-exam-app .lista-disciplinas{display:flex; flex-direction:column; gap:11px;}
   .mc-exam-app .cartao-disciplina{
     background:#fff;
     border:1px solid var(--linha);
-    border-radius:14px;
-    padding:18px 20px;
+    border-radius:12px;
+    padding:13px 15px;
     cursor:pointer;
-    display:flex; align-items:center; gap:14px;
+    display:flex; align-items:center; gap:11px;
     transition:border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   }
   .mc-exam-app .cartao-disciplina:active{transform:scale(0.99);}
   .mc-exam-app .cartao-disciplina:hover{border-color:var(--dourado); box-shadow:var(--sombra-md); transform:translateY(-2px);}
   .mc-exam-app .cartao-disciplina .icone{
-    flex-shrink:0; min-width:44px; width:auto; height:44px; border-radius:10px;
+    flex-shrink:0; min-width:34px; width:auto; height:34px; border-radius:8px;
     background:var(--creme); color:var(--verde);
     display:flex; align-items:center; justify-content:center;
-    font-family:var(--fonte-app) !important; font-weight:700; font-size:15px;
-    overflow:hidden; white-space:nowrap; text-align:center; box-sizing:border-box; padding:0 6px; line-height:1;
+    font-family:var(--fonte-app) !important; font-weight:700; font-size:11.5px;
+    overflow:hidden; white-space:nowrap; text-align:center; box-sizing:border-box; padding:0 5px; line-height:1;
   }
   .mc-exam-app .cartao-disciplina.tem-exames .icone{background:linear-gradient(150deg,var(--verde),var(--verde-escuro)); color:var(--dourado-claro);}
   .mc-exam-app .cartao-disciplina .info{flex:1; min-width:0;}
-  .mc-exam-app .cartao-disciplina h3{font-size:16px; color:var(--verde-escuro); line-height:1.25; font-weight:600; font-family:var(--fonte-app) !important; white-space:normal; overflow-wrap:break-word; max-width:100%;}
-  .mc-exam-app .cartao-disciplina .meta{font-size:12.5px; color:var(--cinza); margin-top:4px;}
-  .mc-exam-app .cartao-disciplina .seta{color:var(--dourado); font-size:18px; flex-shrink:0;}
+  .mc-exam-app .cartao-disciplina h3{font-size:13.5px; color:var(--verde-escuro); line-height:1.25; font-weight:600; font-family:var(--fonte-app) !important; white-space:normal; overflow-wrap:break-word; max-width:100%;}
+  .mc-exam-app .cartao-disciplina .meta{font-size:11px; color:var(--cinza); margin-top:3px;}
+  .mc-exam-app .cartao-disciplina .seta{color:var(--dourado); font-size:15px; flex-shrink:0;}
   .mc-exam-app .cartao-disciplina.vazia{opacity:0.6; cursor:default;}
   .mc-exam-app .cartao-disciplina.vazia:hover{border-color:var(--linha); box-shadow:none;}
   .mc-exam-app .cartao-universidade{
     background:#fff;
     border:1px solid var(--linha);
-    border-radius:16px;
-    padding:20px 22px;
+    border-radius:14px;
+    padding:14px 16px;
     cursor:pointer;
-    display:flex; align-items:center; gap:18px;
-    height:116px;
+    display:flex; align-items:center; gap:14px;
+    height:88px;
     transition:border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   }
   .mc-exam-app .cartao-universidade:active{transform:scale(0.99);}
   .mc-exam-app .cartao-universidade:hover{border-color:var(--dourado); box-shadow:var(--sombra-md); transform:translateY(-2px);}
   .mc-exam-app .cartao-universidade .emblema{
-    flex-shrink:0; min-width:72px; width:auto; height:72px; border-radius:16px;
+    flex-shrink:0; min-width:54px; width:auto; height:54px; border-radius:12px;
     background:linear-gradient(150deg,var(--verde),var(--verde-escuro));
     color:var(--dourado-claro); display:flex; align-items:center; justify-content:center;
-    font-family:var(--fonte-app) !important; font-weight:700; font-size:19px;
-    overflow:hidden; white-space:nowrap; text-align:center; box-sizing:border-box; padding:0 8px; line-height:1;
+    font-family:var(--fonte-app) !important; font-weight:700; font-size:14.5px;
+    overflow:hidden; white-space:nowrap; text-align:center; box-sizing:border-box; padding:0 6px; line-height:1;
   }
   .mc-exam-app .cartao-universidade .info{flex:1; min-width:0; overflow:hidden;}
   .mc-exam-app .cartao-universidade h3{
-    font-size:17px; font-weight:700; color:var(--verde-escuro); line-height:1.28;
+    font-size:14.5px; font-weight:700; color:var(--verde-escuro); line-height:1.28;
     display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2;
     overflow:hidden; overflow-wrap:break-word; max-width:100%; max-height:calc(1.28em * 2);
   }
   .mc-exam-app .cartao-universidade .meta{
-    display:flex; gap:14px; margin-top:8px; font-size:13.5px; color:var(--cinza);
+    display:flex; gap:10px; margin-top:5px; font-size:11.5px; color:var(--cinza);
     white-space:nowrap; overflow:hidden;
   }
   .mc-exam-app .cartao-universidade .meta span{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .mc-exam-app .cartao-universidade .seta{color:var(--dourado); font-size:22px; flex-shrink:0;}
+  .mc-exam-app .cartao-universidade .seta{color:var(--dourado); font-size:19px; flex-shrink:0;}
 
   .mc-exam-app .estado-vazio{
     text-align:center; padding:30px 20px; color:var(--cinza);
@@ -325,12 +327,12 @@
   .mc-exam-app .cabecalho-universidade h2{font-size:21px; margin-top:4px; white-space:normal; overflow-wrap:break-word; max-width:100%;}
   .mc-exam-app .cabecalho-universidade-texto{flex:1; min-width:0;}
 
-  .mc-exam-app .lista-exames{display:flex; flex-direction:column; gap:14px;}
+  .mc-exam-app .lista-exames{display:flex; flex-direction:column; gap:11px;}
   .mc-exam-app .cartao-exame{
     background:#fff;
     border:1px solid var(--linha);
-    border-radius:14px;
-    padding:20px;
+    border-radius:12px;
+    padding:14px 15px;
     cursor:pointer;
     transition:border-color 0.15s, transform 0.15s, box-shadow 0.15s;
     position:relative;
@@ -338,21 +340,21 @@
   }
   .mc-exam-app .cartao-exame::before{
     content:"";
-    position:absolute; left:0; top:0; bottom:0; width:4px;
+    position:absolute; left:0; top:0; bottom:0; width:3px;
     background:var(--dourado);
   }
   .mc-exam-app .cartao-exame:active{transform:scale(0.99);}
   .mc-exam-app .cartao-exame:hover{border-color:var(--dourado); box-shadow:var(--sombra-md); transform:translateY(-2px);}
   .mc-exam-app .cartao-exame .disciplina-eyebrow{
-    font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;
-    color:var(--dourado); margin-bottom:6px;
+    font-size:9.5px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--dourado); margin-bottom:4px;
   }
-  .mc-exam-app .cartao-exame h3{font-size:19px; color:var(--verde-escuro);}
+  .mc-exam-app .cartao-exame h3{font-size:14.5px; color:var(--verde-escuro);}
   .mc-exam-app .cartao-exame .meta{
-    display:flex; gap:16px; flex-wrap:wrap;
-    margin-top:12px; font-size:13px; color:var(--cinza);
+    display:flex; gap:12px; flex-wrap:wrap;
+    margin-top:8px; font-size:11px; color:var(--cinza);
   }
-  .mc-exam-app .cartao-exame .meta span{display:flex; align-items:center; gap:5px;}
+  .mc-exam-app .cartao-exame .meta span{display:flex; align-items:center; gap:4px;}
 
   .mc-exam-app /* Tela de detalhes do exame */
   .painel-detalhes{
@@ -2105,10 +2107,34 @@ function mostrarTela(id){
   // fecha ao clicar fora, ao premir Escape, ou ao escolher um link.
   const menuBtn = document.getElementById("menuHamburguerBtn");
   const menuPainel = document.getElementById("menuHamburguerPainel");
+  let scrollYAntesDoMenu = 0;
+  function trancarScrollMenu(){
+    scrollYAntesDoMenu = window.scrollY || document.documentElement.scrollTop || 0;
+    document.body.style.position = "fixed";
+    document.body.style.top = (-scrollYAntesDoMenu) + "px";
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+    if(window.self !== window.top){
+      window.parent.postMessage({ tipo: "simuladorMozCarreirasTrancarScroll" }, "*");
+    }
+  }
+  function destrancarScrollMenu(){
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+    document.body.style.width = "";
+    window.scrollTo(0, scrollYAntesDoMenu);
+    if(window.self !== window.top){
+      window.parent.postMessage({ tipo: "simuladorMozCarreirasDestrancarScroll" }, "*");
+    }
+  }
   function fecharMenuHamburguer(){
     if(!menuBtn || !menuPainel) return;
     menuBtn.setAttribute("aria-expanded", "false");
     menuPainel.classList.remove("aberto");
+    destrancarScrollMenu();
   }
   function alternarMenuHamburguer(){
     if(!menuBtn || !menuPainel) return;
@@ -2117,6 +2143,7 @@ function mostrarTela(id){
     else{
       menuBtn.setAttribute("aria-expanded", "true");
       menuPainel.classList.add("aberto");
+      trancarScrollMenu();
     }
   }
   if(menuBtn){
@@ -2190,7 +2217,7 @@ function renderHome(){
     const numDisciplinasComExame = u.disciplinas.filter(d => d.exames.length > 0).length;
     return `
     <div class="cartao-universidade" style="--atraso:${Math.min(i,8)*45}ms" onclick="abrirUniversidade(${i})">
-      <div class="emblema" style="${estiloEmblema(u.sigla || iniciais(u.nome), 17)}">${u.sigla || iniciais(u.nome)}</div>
+      <div class="emblema" style="${estiloEmblema(u.sigla || iniciais(u.nome), 13)}">${u.sigla || iniciais(u.nome)}</div>
       <div class="info">
         <h3>${u.nome}</h3>
         <div class="meta">
@@ -2795,6 +2822,17 @@ renderHome();
            document.querySelectorAll(SELETOR_CABECALHO_SITE).forEach(function(el){
              el.style.display = "none";
            });
+         }
+         if(event.data.tipo === "simuladorMozCarreirasTrancarScroll"){
+           // Impede a página do blog de rolar por baixo do widget
+           // enquanto o menu hambúrguer do simulador está aberto,
+           // para o menu não "fugir" para cima ao deslizar o dedo.
+           document.documentElement.style.overflow = "hidden";
+           document.body.style.overflow = "hidden";
+         }
+         if(event.data.tipo === "simuladorMozCarreirasDestrancarScroll"){
+           document.documentElement.style.overflow = "";
+           document.body.style.overflow = "";
          }
        });
      })();
