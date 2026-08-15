@@ -385,6 +385,32 @@
 </style>
 </head>
 <body>
+<div id="mc-debug" style="position:fixed;top:0;left:0;right:0;z-index:999999;background:#B3261E;color:#fff;font:11px/1.35 monospace;padding:6px 8px;word-break:break-all;"></div>
+<script>
+(function(){
+  function atualizar(){
+    var d = document.getElementById('mc-debug');
+    if(!d) return;
+    var h1 = document.querySelector('.mc-exam-app .hero h1, .mc-exam-app h1');
+    var cs = h1 ? getComputedStyle(h1) : null;
+    var vv = window.visualViewport;
+    d.textContent =
+      "innerW:" + window.innerWidth +
+      " DPR:" + window.devicePixelRatio +
+      " | h1 fontSize:" + (cs ? cs.fontSize : "N/A") +
+      " fontFamily:" + (cs ? cs.fontFamily : "N/A") +
+      " | vvScale:" + (vv ? vv.scale : "N/A") +
+      " vvW:" + (vv ? Math.round(vv.width) : "N/A") +
+      " | htmlTSA:" + getComputedStyle(document.documentElement).webkitTextSizeAdjust;
+  }
+  window.addEventListener('resize', atualizar);
+  window.addEventListener('load', atualizar);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', atualizar);
+  document.fonts && document.fonts.ready.then(atualizar);
+  atualizar();
+  setTimeout(atualizar, 800);
+})();
+</script>
 
 <div class="mc-exam-app" lang="pt">
 <div class="topo">
