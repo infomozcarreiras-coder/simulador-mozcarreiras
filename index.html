@@ -2744,7 +2744,8 @@ function gerarPDF(){
        para nenhum texto ser cortado.
      Entrelinha: fator 1.3 (dentro do intervalo 1.15–1.5), aplicado via
        setLineHeightFactor para que TODO o texto — incluindo o cabeçalho —
-       seja sempre quebrado (splitTextToSize) dentro da largura útil e
+       seja sempre quebrado (por palavras e, se necessário, por caracteres
+       dentro de palavras muito longas) dentro da largura útil e
        nunca ultrapasse a margem direita.
      Espaçamento entre parágrafos: 6 a 8 pt.
      Hierarquia: H1 22pt / H2-H3 14-15pt / corpo 11pt / legendas 9pt.
@@ -2764,6 +2765,47 @@ function gerarPDF(){
 
   function alturaLinha(tamanhoFonte){ return tamanhoFonte*entrelinha; }
 
+  // Quebra de texto robusta: quebra por palavras (como o padrão do jsPDF)
+  // mas, se uma única palavra/token for mais largo que a própria largura
+  // útil (ex.: fórmulas, números longos, termos sem espaços), força a
+  // quebra por caracteres — garantindo que NENHUMA linha ultrapassa a
+  // margem direita, mesmo em casos extremos.
+  function quebrarTexto(texto, larguraMax){
+    const linhas = [];
+    let linhaAtual = "";
+    function largura(txt){ return doc.getTextWidth(txt); }
+    function fecharLinha(){ linhas.push(linhaAtual); linhaAtual = ""; }
+
+    String(texto).split(/\s+/).filter(Boolean).forEach((palavra) => {
+      if (largura(palavra) <= larguraMax){
+        const candidato = linhaAtual ? linhaAtual + " " + palavra : palavra;
+        if (largura(candidato) <= larguraMax){
+          linhaAtual = candidato;
+        } else {
+          if (linhaAtual) fecharLinha();
+          linhaAtual = palavra;
+        }
+      } else {
+        // Palavra maior que a largura útil: força quebra por caracteres.
+        if (linhaAtual) fecharLinha();
+        let fragmento = "";
+        for (const ch of palavra){
+          const tentativa = fragmento + ch + "-";
+          if (largura(tentativa) > larguraMax && fragmento !== ""){
+            linhas.push(fragmento + "-");
+            fragmento = ch;
+          } else {
+            fragmento += ch;
+          }
+        }
+        linhaAtual = fragmento;
+      }
+    });
+
+    if (linhaAtual) fecharLinha();
+    return linhas.length ? linhas : [""];
+  }
+
   // Garante que nenhum bloco de texto é cortado entre páginas
   function novaLinhaSeNecessario(alturaNecessaria){
     if(y + alturaNecessaria > pageH - margemFundo){
@@ -2777,14 +2819,14 @@ function gerarPDF(){
   // dimensionar a banda dinamicamente e nunca cortar o texto no fundo dela.
   doc.setFont(FONTE,"bold");
   doc.setFontSize(9);
-  const linhasUniv = doc.splitTextToSize(universidadeAtual.nome.toUpperCase(), largura);
+  const linhasUniv = quebrarTexto(universidadeAtual.nome.toUpperCase(), largura);
   doc.setFont(FONTE,"bold");
   doc.setFontSize(22);
-  const linhasDisciplina = doc.splitTextToSize(exameAtual.disciplina, largura);
+  const linhasDisciplina = quebrarTexto(exameAtual.disciplina, largura);
   doc.setFont(FONTE,"normal");
   doc.setFontSize(9);
   const textoInfo = `Ano: ${exameAtual.ano}   |   Duração: ${exameAtual.duracaoMinutos} min   |   Correção Completa`;
-  const linhasInfo = doc.splitTextToSize(textoInfo, largura);
+  const linhasInfo = quebrarTexto(textoInfo, largura);
 
   const alturaUniv = linhasUniv.length*alturaLinha(9);
   const alturaDisciplina = linhasDisciplina.length*alturaLinha(22);
@@ -2822,7 +2864,7 @@ function gerarPDF(){
   // Subtítulo / H2 (14-16pt, negrito)
   doc.setFont(FONTE,"bold");
   doc.setFontSize(15);
-  const linhasResultado = doc.splitTextToSize(`Resultado: ${certas}/${total} (${percentagem}%)`, largura);
+  const linhasResultado = quebrarTexto(`Resultado: ${certas}/${total} (${percentagem}%)`, largura);
   doc.text(linhasResultado, margemEsq, y);
   y += linhasResultado.length*alturaLinha(15) + espacoParagrafo;
 
@@ -2830,7 +2872,7 @@ function gerarPDF(){
   doc.setFont(FONTE,"normal");
   doc.setFontSize(9);
   doc.setTextColor(107,117,112);
-  const linhasTempo = doc.splitTextToSize(`Tempo usado: ${formatarTempo(tempoTotalUsadoSeg)}  |  Gerado por Moz Carreiras — Simulador de Exames de Admissão`, largura);
+  const linhasTempo = quebrarTexto(`Tempo usado: ${formatarTempo(tempoTotalUsadoSeg)}  |  Gerado por Moz Carreiras — Simulador de Exames de Admissão`, largura);
   doc.text(linhasTempo, margemEsq, y);
   y += linhasTempo.length*alturaLinha(9) + espacoParagrafo + 12;
   doc.setTextColor(30,35,33);
@@ -2849,7 +2891,7 @@ function gerarPDF(){
     doc.setFont(FONTE,"bold");
     doc.setFontSize(14);
     doc.setTextColor(acertou ? 30 : 179, acertou ? 122 : 38, acertou ? 76 : 30);
-    const linhasPergunta = doc.splitTextToSize(`Pergunta ${i+1} — ${acertou ? "CERTA" : "ERRADA"}`, largura);
+    const linhasPergunta = quebrarTexto(`Pergunta ${i+1} — ${acertou ? "CERTA" : "ERRADA"}`, largura);
     doc.text(linhasPergunta, margemEsq, y);
     y += linhasPergunta.length*alturaLinha(14) + espacoParagrafo;
 
@@ -2857,7 +2899,7 @@ function gerarPDF(){
     doc.setTextColor(30,35,33);
     doc.setFont(FONTE,"normal");
     doc.setFontSize(tamanhoCorpo);
-    const linhasEnunciado = doc.splitTextToSize(q.enunciado, largura);
+    const linhasEnunciado = quebrarTexto(q.enunciado, largura);
     novaLinhaSeNecessario(linhasEnunciado.length*linhaCorpo + espacoParagrafo + 10);
     doc.text(linhasEnunciado, margemEsq, y);
     y += linhasEnunciado.length*linhaCorpo + espacoParagrafo;
@@ -2865,7 +2907,7 @@ function gerarPDF(){
     if(respostaUser !== undefined && !acertou){
       doc.setTextColor(179,38,30);
       const txt = `Tua resposta: ${letras[respostaUser]}. ${q.opcoes[respostaUser]}`;
-      const linhas = doc.splitTextToSize(txt, largura);
+      const linhas = quebrarTexto(txt, largura);
       novaLinhaSeNecessario(linhas.length*linhaCorpo + espacoParagrafo);
       doc.text(linhas, margemEsq, y);
       y += linhas.length*linhaCorpo + espacoParagrafo;
@@ -2878,14 +2920,14 @@ function gerarPDF(){
 
     doc.setTextColor(30,122,76);
     const txtCerta = `Resposta certa: ${letras[q.correta]}. ${q.opcoes[q.correta]}`;
-    const linhasCerta = doc.splitTextToSize(txtCerta, largura);
+    const linhasCerta = quebrarTexto(txtCerta, largura);
     novaLinhaSeNecessario(linhasCerta.length*linhaCorpo + espacoParagrafo);
     doc.text(linhasCerta, margemEsq, y);
     y += linhasCerta.length*linhaCorpo + espacoParagrafo;
 
     doc.setTextColor(60,64,62);
     doc.setFont(FONTE,"italic");
-    const linhasExp = doc.splitTextToSize("Explicação: " + q.explicacao, largura);
+    const linhasExp = quebrarTexto("Explicação: " + q.explicacao, largura);
     novaLinhaSeNecessario(linhasExp.length*linhaCorpo + espacoParagrafo + 12);
     doc.text(linhasExp, margemEsq, y);
     y += linhasExp.length*linhaCorpo + espacoParagrafo + 12; // espaço extra de separação entre perguntas
