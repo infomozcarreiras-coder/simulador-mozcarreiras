@@ -223,12 +223,12 @@
   .mc-exam-app /* Cabeçalhos de secção reutilizáveis */
   .hero{padding:var(--sp-7) 0 var(--sp-2);}
   .mc-exam-app .hero .eyebrow{
-    font-size:clamp(13.5px, 0.8vw + 11.8px, 15px); letter-spacing:0.1em; text-transform:uppercase;
+    font-size:var(--tp-sm); letter-spacing:0.1em; text-transform:uppercase;
     color:var(--verde); font-weight:600; margin-bottom:var(--sp-3);
-    display:flex; align-items:center; gap:9px;
+    display:flex; align-items:center; gap:8px;
   }
-  .mc-exam-app .hero .eyebrow::before{content:""; width:8px; height:8px; border-radius:50%; background:var(--dourado); display:inline-block;}
-  .mc-exam-app .hero .eyebrow::after{content:""; width:8px; height:8px; border-radius:50%; background:var(--dourado); display:inline-block;}
+  .mc-exam-app .hero .eyebrow::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--dourado); display:inline-block;}
+  .mc-exam-app .hero .eyebrow::after{content:""; width:6px; height:6px; border-radius:50%; background:var(--dourado); display:inline-block;}
   .mc-exam-app .hero h1{font-size:var(--tp-sm); color:var(--carvao); line-height:1.75; text-align:center; hyphens:none; -webkit-hyphens:none; font-weight:400; overflow-wrap:break-word; word-break:normal; max-width:680px; margin:0 auto; white-space:normal;}
   .mc-exam-app .hero h1 .quebra-mobile{display:none;}
   .mc-exam-app .hero p{color:var(--cinza); font-size:var(--tp-md); margin-top:var(--sp-3); max-width:52ch; line-height:1.65; text-align:left; hyphens:none; -webkit-hyphens:none;}
@@ -2997,8 +2997,9 @@ function gerarPDF(){
   // Desenhado por último (depois de todo o conteúdo já estar distribuído
   // pelas páginas necessárias), percorrendo cada página gerada.
   const totalPaginas = doc.internal.getNumberOfPages();
-  const textoCredito = "mozcarreiras.blogspot.com";
-  const textoMarca = "Moz Carreiras — Simulador de Exames de Admissão";
+  const anoAtual = new Date().getFullYear();
+  const textoCredito = "Mozcarreiras.blogspot.com";
+  const textoMarca = `© ${anoAtual} Moz Carreiras. Todos os direitos reservados.`;
   for(let p = 1; p <= totalPaginas; p++){
     doc.setPage(p);
     const yRodape = pageH - 28;
@@ -3006,19 +3007,15 @@ function gerarPDF(){
     doc.setLineWidth(0.75);
     doc.line(margemEsq, yRodape - 10, pageW - margemDir, yRodape - 10);
 
-    doc.setFont(FONTE,"bold");
-    doc.setFontSize(8.5);
-    doc.setTextColor(11,61,46);
-    doc.text(sanitizarTextoPDF(textoMarca), margemEsq, yRodape);
-
     doc.setFont(FONTE,"normal");
     doc.setFontSize(8.5);
     doc.setTextColor(107,117,112);
-    doc.text(sanitizarTextoPDF(textoCredito), pageW - margemDir, yRodape, { align: "right" });
+    doc.text(sanitizarTextoPDF(textoMarca), margemEsq, yRodape);
 
-    doc.setFontSize(8);
-    doc.setTextColor(155,163,157);
-    doc.text(`Página ${p} de ${totalPaginas}`, pageW/2, yRodape, { align: "center" });
+    doc.setFont(FONTE,"bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(11,61,46);
+    doc.text(sanitizarTextoPDF(textoCredito), pageW - margemDir, yRodape, { align: "right" });
   }
 
   const nomeArquivo = `correcao-${universidadeAtual.id}-${exameAtual.id}.pdf`;
