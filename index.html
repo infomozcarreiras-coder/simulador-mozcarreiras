@@ -2885,8 +2885,17 @@ function gerarPDF(){
   const proporcaoLogo = 238/300;     // largura/altura originais da logo
   const logoAltura = 52;
   const logoLargura = logoAltura * proporcaoLogo;
+  // O fundo branco atrás da logo é maior do que a própria imagem (com
+  // preenchimento à volta) e tem cantos arredondados, tal como a
+  // "pastilha" usada no cabeçalho do próprio simulador — dando um
+  // acabamento em forma de crachá, mais elegante do que um recorte
+  // justo à imagem.
+  const padLogo = 11;
+  const raioCaixaLogo = 10;
+  const caixaLogoLargura = logoLargura + padLogo*2;
+  const caixaLogoAltura = logoAltura + padLogo*2;
   const gapLogo = 18;
-  const larguraCabecalho = Math.max(120, largura - logoLargura - gapLogo);
+  const larguraCabecalho = Math.max(120, largura - caixaLogoLargura - gapLogo);
 
   doc.setFont(FONTE,"bold");
   doc.setFontSize(24);
@@ -2904,7 +2913,7 @@ function gerarPDF(){
   const alturaInfo = linhasInfo.length*alturaLinha(9);
   const padTopoBanda = 24, gapBanda = 8, padFundoBanda = 20;
   const alturaTextoBanda = padTopoBanda + alturaUniv + gapBanda + alturaDisciplina + gapBanda + alturaInfo + padFundoBanda;
-  const alturaBanda = Math.max(alturaTextoBanda, logoAltura + padTopoBanda + padFundoBanda);
+  const alturaBanda = Math.max(alturaTextoBanda, caixaLogoAltura + padTopoBanda + padFundoBanda);
 
   doc.setFillColor(11,61,46);
   doc.rect(0,0,pageW,alturaBanda,"F");
@@ -2925,14 +2934,18 @@ function gerarPDF(){
   doc.text(linhasInfo, margemEsq, y);
 
   // Logo do site, encostada ao canto superior direito do cabeçalho,
-  // centrada verticalmente na altura da banda. Um fundo branco do
-  // mesmo tamanho da logo fica por trás dela, para dar nitidez e
-  // contraste sobre o verde-escuro do cabeçalho.
+  // centrada verticalmente na altura da banda, sobre um crachá branco
+  // arredondado (com contorno dourado subtil) — o mesmo tratamento
+  // visual da "pastilha" usada no cabeçalho do simulador.
   try{
-    const logoX = pageW - margemDir - logoLargura;
-    const logoY = (alturaBanda - logoAltura) / 2;
+    const caixaLogoX = pageW - margemDir - caixaLogoLargura;
+    const caixaLogoY = (alturaBanda - caixaLogoAltura) / 2;
     doc.setFillColor(255,255,255);
-    doc.rect(logoX, logoY, logoLargura, logoAltura, "F");
+    doc.setDrawColor(201,162,75);
+    doc.setLineWidth(1.1);
+    doc.roundedRect(caixaLogoX, caixaLogoY, caixaLogoLargura, caixaLogoAltura, raioCaixaLogo, raioCaixaLogo, "FD");
+    const logoX = caixaLogoX + padLogo;
+    const logoY = caixaLogoY + padLogo;
     doc.addImage(LOGO_MOZ_CARREIRAS_PNG, "PNG", logoX, logoY, logoLargura, logoAltura);
   } catch(erroLogo){
     // Se a imagem falhar por algum motivo, o PDF continua a ser gerado
