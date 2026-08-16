@@ -2739,31 +2739,36 @@ function gerarPDF(){
 
   /* ---- Diretrizes de formatação aplicadas ----
      Fonte: Times New Roman (equivalente "times" do PDF).
-     Margens: 72pt (2,54 cm) em todas as direções — acima do mínimo de 2,5 cm.
+     Margens: reduzidas à esquerda (36pt) para aproximar o texto do bordo,
+       mantendo topo/fundo/direita em 54pt — ainda uma margem de segurança
+       para nenhum texto ser cortado.
      Entrelinha: fator 1.3 (dentro do intervalo 1.15–1.5), aplicado via
        setLineHeightFactor para que TODO o texto — incluindo o cabeçalho —
        seja sempre quebrado (splitTextToSize) dentro da largura útil e
        nunca ultrapasse a margem direita.
      Espaçamento entre parágrafos: 6 a 8 pt.
      Hierarquia: H1 22pt / H2-H3 14-15pt / corpo 11pt / legendas 9pt.
-     Alinhamento: à esquerda (padrão do doc.text, x fixo em "margem"). */
+     Alinhamento: à esquerda (padrão do doc.text, x fixo em "margemEsq"). */
   const FONTE = "times";
-  const margem = 72;                 // 2,54 cm de segurança em todos os lados
+  const margemEsq = 36;              // margem reduzida à esquerda (~1,27 cm)
+  const margemDir = 54;              // margem de segurança à direita (~1,9 cm)
+  const margemTopo = 54;
+  const margemFundo = 54;
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
-  const largura = pageW - margem*2;  // caixa de texto nunca ultrapassa a margem
+  const largura = pageW - margemEsq - margemDir;  // caixa de texto nunca ultrapassa a margem
   const entrelinha = 1.3;            // dentro de 1.15–1.5
   const espacoParagrafo = 8;         // 6 a 8 pt após cada parágrafo
   doc.setLineHeightFactor(entrelinha);
-  let y = margem;
+  let y = margemTopo;
 
   function alturaLinha(tamanhoFonte){ return tamanhoFonte*entrelinha; }
 
   // Garante que nenhum bloco de texto é cortado entre páginas
   function novaLinhaSeNecessario(alturaNecessaria){
-    if(y + alturaNecessaria > pageH - margem){
+    if(y + alturaNecessaria > pageH - margemFundo){
       doc.addPage();
-      y = margem;
+      y = margemTopo;
     }
   }
 
@@ -2794,16 +2799,16 @@ function gerarPDF(){
   y = padTopoBanda + alturaUniv*0.8;
   doc.setFont(FONTE,"bold");
   doc.setFontSize(9);
-  doc.text(linhasUniv, margem, y);
+  doc.text(linhasUniv, margemEsq, y);
 
   y = padTopoBanda + alturaUniv + gapBanda + alturaDisciplina*0.75;
   doc.setFontSize(22);
-  doc.text(linhasDisciplina, margem, y);
+  doc.text(linhasDisciplina, margemEsq, y);
 
   y = padTopoBanda + alturaUniv + gapBanda + alturaDisciplina + gapBanda + alturaInfo*0.8;
   doc.setFont(FONTE,"normal");
   doc.setFontSize(9);
-  doc.text(linhasInfo, margem, y);
+  doc.text(linhasInfo, margemEsq, y);
 
   y = alturaBanda + 40;
   doc.setTextColor(30,35,33);
@@ -2818,7 +2823,7 @@ function gerarPDF(){
   doc.setFont(FONTE,"bold");
   doc.setFontSize(15);
   const linhasResultado = doc.splitTextToSize(`Resultado: ${certas}/${total} (${percentagem}%)`, largura);
-  doc.text(linhasResultado, margem, y);
+  doc.text(linhasResultado, margemEsq, y);
   y += linhasResultado.length*alturaLinha(15) + espacoParagrafo;
 
   // Legenda (8-9pt)
@@ -2826,7 +2831,7 @@ function gerarPDF(){
   doc.setFontSize(9);
   doc.setTextColor(107,117,112);
   const linhasTempo = doc.splitTextToSize(`Tempo usado: ${formatarTempo(tempoTotalUsadoSeg)}  |  Gerado por Moz Carreiras — Simulador de Exames de Admissão`, largura);
-  doc.text(linhasTempo, margem, y);
+  doc.text(linhasTempo, margemEsq, y);
   y += linhasTempo.length*alturaLinha(9) + espacoParagrafo + 12;
   doc.setTextColor(30,35,33);
 
@@ -2845,7 +2850,7 @@ function gerarPDF(){
     doc.setFontSize(14);
     doc.setTextColor(acertou ? 30 : 179, acertou ? 122 : 38, acertou ? 76 : 30);
     const linhasPergunta = doc.splitTextToSize(`Pergunta ${i+1} — ${acertou ? "CERTA" : "ERRADA"}`, largura);
-    doc.text(linhasPergunta, margem, y);
+    doc.text(linhasPergunta, margemEsq, y);
     y += linhasPergunta.length*alturaLinha(14) + espacoParagrafo;
 
     // Corpo do texto (11pt)
@@ -2854,7 +2859,7 @@ function gerarPDF(){
     doc.setFontSize(tamanhoCorpo);
     const linhasEnunciado = doc.splitTextToSize(q.enunciado, largura);
     novaLinhaSeNecessario(linhasEnunciado.length*linhaCorpo + espacoParagrafo + 10);
-    doc.text(linhasEnunciado, margem, y);
+    doc.text(linhasEnunciado, margemEsq, y);
     y += linhasEnunciado.length*linhaCorpo + espacoParagrafo;
 
     if(respostaUser !== undefined && !acertou){
@@ -2862,12 +2867,12 @@ function gerarPDF(){
       const txt = `Tua resposta: ${letras[respostaUser]}. ${q.opcoes[respostaUser]}`;
       const linhas = doc.splitTextToSize(txt, largura);
       novaLinhaSeNecessario(linhas.length*linhaCorpo + espacoParagrafo);
-      doc.text(linhas, margem, y);
+      doc.text(linhas, margemEsq, y);
       y += linhas.length*linhaCorpo + espacoParagrafo;
     } else if(respostaUser === undefined){
       doc.setTextColor(179,38,30);
       novaLinhaSeNecessario(linhaCorpo + espacoParagrafo);
-      doc.text("Tua resposta: Não respondida", margem, y);
+      doc.text("Tua resposta: Não respondida", margemEsq, y);
       y += linhaCorpo + espacoParagrafo;
     }
 
@@ -2875,14 +2880,14 @@ function gerarPDF(){
     const txtCerta = `Resposta certa: ${letras[q.correta]}. ${q.opcoes[q.correta]}`;
     const linhasCerta = doc.splitTextToSize(txtCerta, largura);
     novaLinhaSeNecessario(linhasCerta.length*linhaCorpo + espacoParagrafo);
-    doc.text(linhasCerta, margem, y);
+    doc.text(linhasCerta, margemEsq, y);
     y += linhasCerta.length*linhaCorpo + espacoParagrafo;
 
     doc.setTextColor(60,64,62);
     doc.setFont(FONTE,"italic");
     const linhasExp = doc.splitTextToSize("Explicação: " + q.explicacao, largura);
     novaLinhaSeNecessario(linhasExp.length*linhaCorpo + espacoParagrafo + 12);
-    doc.text(linhasExp, margem, y);
+    doc.text(linhasExp, margemEsq, y);
     y += linhasExp.length*linhaCorpo + espacoParagrafo + 12; // espaço extra de separação entre perguntas
   });
 
