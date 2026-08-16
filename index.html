@@ -2736,31 +2736,55 @@ function baixarPDF(){
 function gerarPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const margem = 48;
-  const largura = doc.internal.pageSize.getWidth() - margem*2;
+
+  /* ---- Diretrizes de formatação aplicadas ----
+     Fonte: Times New Roman (equivalente "times" do PDF).
+     Margens: 72pt (2,54 cm) em todas as direções — acima do mínimo de 2,5 cm.
+     Entrelinha: fator 1.3 (dentro do intervalo 1.15–1.5).
+     Espaçamento entre parágrafos: 6 a 8 pt.
+     Hierarquia: H1 22pt / H2-H3 14-15pt / corpo 11pt / legendas 9pt.
+     Alinhamento: à esquerda (padrão do doc.text). */
+  const FONTE = "times";
+  const margem = 72;                 // 2,54 cm de segurança em todos os lados
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const largura = pageW - margem*2;  // caixa de texto nunca ultrapassa a margem
+  const entrelinha = 1.3;            // dentro de 1.15–1.5
+  const espacoParagrafo = 8;         // 6 a 8 pt após cada parágrafo
   let y = margem;
 
+  function alturaLinha(tamanhoFonte){ return tamanhoFonte*entrelinha; }
+
+  // Garante que nenhum bloco de texto é cortado entre páginas
   function novaLinhaSeNecessario(alturaNecessaria){
-    if(y + alturaNecessaria > doc.internal.pageSize.getHeight() - margem){
+    if(y + alturaNecessaria > pageH - margem){
       doc.addPage();
       y = margem;
     }
   }
 
-  // Cabeçalho
+  // Cabeçalho (banda decorativa a toda a largura — não é conteúdo de corpo,
+  // por isso não está sujeita à margem lateral, apenas o texto dentro dela)
+  const alturaBanda = 118;
   doc.setFillColor(11,61,46);
-  doc.rect(0,0,doc.internal.pageSize.getWidth(),90,"F");
+  doc.rect(0,0,pageW,alturaBanda,"F");
   doc.setTextColor(255,255,255);
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(10);
-  doc.text(universidadeAtual.nome.toUpperCase(), margem, 34);
-  doc.setFontSize(16);
-  doc.text(exameAtual.disciplina, margem, 54);
-  doc.setFont("helvetica","normal");
-  doc.setFontSize(10);
-  doc.text(`Ano: ${exameAtual.ano}   |   Duração: ${exameAtual.duracaoMinutos} min   |   Correção Completa`, margem, 74);
 
-  y = 118;
+  // Legenda (8-9pt)
+  doc.setFont(FONTE,"bold");
+  doc.setFontSize(9);
+  doc.text(universidadeAtual.nome.toUpperCase(), margem, 28);
+
+  // Título Principal / H1 (20-24pt, negrito)
+  doc.setFontSize(22);
+  doc.text(exameAtual.disciplina, margem, 62);
+
+  // Legenda (8-9pt)
+  doc.setFont(FONTE,"normal");
+  doc.setFontSize(9);
+  doc.text(`Ano: ${exameAtual.ano}   |   Duração: ${exameAtual.duracaoMinutos} min   |   Correção Completa`, margem, alturaBanda-16);
+
+  y = alturaBanda + 40;
   doc.setTextColor(30,35,33);
 
   // Resumo
@@ -2769,66 +2793,73 @@ function gerarPDF(){
   exameAtual.questoes.forEach((q,i) => { if(respostas[i] === q.correta) certas++; });
   const percentagem = Math.round((certas/total)*100);
 
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(13);
+  // Subtítulo / H2 (14-16pt, negrito)
+  doc.setFont(FONTE,"bold");
+  doc.setFontSize(15);
   doc.text(`Resultado: ${certas}/${total} (${percentagem}%)`, margem, y);
-  y += 16;
-  doc.setFont("helvetica","normal");
-  doc.setFontSize(10);
+  y += alturaLinha(15) + espacoParagrafo;
+
+  // Legenda (8-9pt)
+  doc.setFont(FONTE,"normal");
+  doc.setFontSize(9);
   doc.setTextColor(107,117,112);
   doc.text(`Tempo usado: ${formatarTempo(tempoTotalUsadoSeg)}  |  Gerado por Moz Carreiras — Simulador de Exames de Admissão`, margem, y);
-  y += 24;
+  y += alturaLinha(9) + espacoParagrafo + 12;
   doc.setTextColor(30,35,33);
 
   const letras = ["A","B","C","D","E","F"];
+  const tamanhoCorpo = 11;           // corpo do texto: mínimo 10pt (usa 11pt)
+  const linhaCorpo = alturaLinha(tamanhoCorpo);
 
   exameAtual.questoes.forEach((q,i) => {
     const respostaUser = respostas[i];
     const acertou = respostaUser === q.correta;
 
-    novaLinhaSeNecessario(50);
+    novaLinhaSeNecessario(70);
 
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(11);
+    // Subtítulo / H3 (14-16pt, negrito)
+    doc.setFont(FONTE,"bold");
+    doc.setFontSize(14);
     doc.setTextColor(acertou ? 30 : 179, acertou ? 122 : 38, acertou ? 76 : 30);
     doc.text(`Pergunta ${i+1} — ${acertou ? "CERTA" : "ERRADA"}`, margem, y);
-    y += 16;
+    y += alturaLinha(14) + espacoParagrafo;
 
+    // Corpo do texto (11pt)
     doc.setTextColor(30,35,33);
-    doc.setFont("helvetica","normal");
-    doc.setFontSize(10.5);
+    doc.setFont(FONTE,"normal");
+    doc.setFontSize(tamanhoCorpo);
     const linhasEnunciado = doc.splitTextToSize(q.enunciado, largura);
-    novaLinhaSeNecessario(linhasEnunciado.length*13 + 10);
+    novaLinhaSeNecessario(linhasEnunciado.length*linhaCorpo + espacoParagrafo + 10);
     doc.text(linhasEnunciado, margem, y);
-    y += linhasEnunciado.length*13 + 6;
+    y += linhasEnunciado.length*linhaCorpo + espacoParagrafo;
 
     if(respostaUser !== undefined && !acertou){
       doc.setTextColor(179,38,30);
       const txt = `Tua resposta: ${letras[respostaUser]}. ${q.opcoes[respostaUser]}`;
       const linhas = doc.splitTextToSize(txt, largura);
-      novaLinhaSeNecessario(linhas.length*12 + 6);
+      novaLinhaSeNecessario(linhas.length*linhaCorpo + espacoParagrafo);
       doc.text(linhas, margem, y);
-      y += linhas.length*12 + 4;
+      y += linhas.length*linhaCorpo + espacoParagrafo;
     } else if(respostaUser === undefined){
       doc.setTextColor(179,38,30);
-      novaLinhaSeNecessario(14);
+      novaLinhaSeNecessario(linhaCorpo + espacoParagrafo);
       doc.text("Tua resposta: Não respondida", margem, y);
-      y += 14;
+      y += linhaCorpo + espacoParagrafo;
     }
 
     doc.setTextColor(30,122,76);
     const txtCerta = `Resposta certa: ${letras[q.correta]}. ${q.opcoes[q.correta]}`;
     const linhasCerta = doc.splitTextToSize(txtCerta, largura);
-    novaLinhaSeNecessario(linhasCerta.length*12 + 6);
+    novaLinhaSeNecessario(linhasCerta.length*linhaCorpo + espacoParagrafo);
     doc.text(linhasCerta, margem, y);
-    y += linhasCerta.length*12 + 6;
+    y += linhasCerta.length*linhaCorpo + espacoParagrafo;
 
     doc.setTextColor(60,64,62);
-    doc.setFont("helvetica","italic");
+    doc.setFont(FONTE,"italic");
     const linhasExp = doc.splitTextToSize("Explicação: " + q.explicacao, largura);
-    novaLinhaSeNecessario(linhasExp.length*12 + 16);
+    novaLinhaSeNecessario(linhasExp.length*linhaCorpo + espacoParagrafo + 12);
     doc.text(linhasExp, margem, y);
-    y += linhasExp.length*12 + 20;
+    y += linhasExp.length*linhaCorpo + espacoParagrafo + 12; // espaço extra de separação entre perguntas
   });
 
   const nomeArquivo = `correcao-${universidadeAtual.id}-${exameAtual.id}.pdf`;
