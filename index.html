@@ -2733,26 +2733,65 @@ function baixarPDF(){
 /* ==========================================================
    GERAÇÃO DE PDF DA CORREÇÃO COMPLETA
    ========================================================== */
+/* Os fontes padrão embutidos no jsPDF (Times, Helvetica…) só cobrem a
+   codificação WinAnsi (~Latin-1 / Windows-1252): letras acentuadas em
+   português (á, ã, ç…), aspas tipográficas, travessões, etc. funcionam bem.
+   MAS os enunciados de Química usam muitos símbolos fora dessa tabela —
+   índices e expoentes (₂, ³, ⁻, ⁺), letras gregas (Δ, α, β) e setas de
+   reacção (→, ⇌). Para esses símbolos o jsPDF não tem a largura real do
+   glifo, por isso o cálculo de quebra de linha ficava errado e o texto
+   acabava por ultrapassar a margem direita no PDF final, mesmo a leitura
+   do código parecendo correcta. A função abaixo substitui esses símbolos
+   por equivalentes em texto simples (ex.: "₂"→"2", "→"→"->", "Δ"→"Delta"),
+   sempre dentro da tabela suportada, para que a largura calculada seja
+   sempre igual à largura realmente impressa — e nunca corte texto. */
+const MAPA_SIMBOLOS_PDF = {
+  "₀":"0","₁":"1","₂":"2","₃":"3","₄":"4","₅":"5","₆":"6","₇":"7","₈":"8","₉":"9",
+  "⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9",
+  "⁺":"+","⁻":"-","₊":"+","₋":"-","⁼":"=",
+  "→":"->","⇌":"<=>","⇄":"<->","⇒":"=>","⇐":"<-","↔":"<->","←":"<-",
+  "Δ":"Delta ","δ":"delta","∆":"Delta ",
+  "α":"alfa","β":"beta","γ":"gama","π":"pi","λ":"lambda","Σ":"Soma",
+  "μ":"\u00B5",
+  "≈":"aprox.","≤":"<=","≥":">=","∞":"infinito","∙":"\u00B7","•":"\u00B7",
+  "‑":"-","‒":"-"
+};
+function sanitizarTextoPDF(texto){
+  if(texto === null || texto === undefined) return "";
+  let saida = "";
+  for(const ch of String(texto)){
+    const codigo = ch.codePointAt(0);
+    if(codigo <= 255){ saida += ch; continue; }
+    if(MAPA_SIMBOLOS_PDF[ch] !== undefined){ saida += MAPA_SIMBOLOS_PDF[ch]; continue; }
+    const semAcentoExtra = ch.normalize("NFKD").replace(/[\u0300-\u036f]/g,"");
+    if(semAcentoExtra && semAcentoExtra.codePointAt(0) <= 255){ saida += semAcentoExtra; }
+    else { saida += "?"; }
+  }
+  return saida;
+}
+
 function gerarPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
 
   /* ---- Diretrizes de formatação aplicadas ----
      Fonte: Times New Roman (equivalente "times" do PDF).
-     Margens: reduzidas à esquerda (36pt) para aproximar o texto do bordo,
-       mantendo topo/fundo/direita em 54pt — ainda uma margem de segurança
-       para nenhum texto ser cortado.
+     Margens: 36pt à esquerda e 56pt à direita/topo/fundo — folga extra à
+       direita para garantir que nada é cortado, mesmo em casos-limite.
      Entrelinha: fator 1.3 (dentro do intervalo 1.15–1.5), aplicado via
        setLineHeightFactor para que TODO o texto — incluindo o cabeçalho —
        seja sempre quebrado (por palavras e, se necessário, por caracteres
        dentro de palavras muito longas) dentro da largura útil e
        nunca ultrapasse a margem direita.
      Espaçamento entre parágrafos: 6 a 8 pt.
-     Hierarquia: H1 22pt / H2-H3 14-15pt / corpo 11pt / legendas 9pt.
+     Hierarquia: H1 20pt / H2-H3 13pt / corpo 10pt / legendas 8.5pt —
+       ligeiramente mais compacta do que o costume, para que enunciados e
+       explicações de Química (muitas vezes longos) caibam confortavelmente
+       dentro da largura útil sem transbordar.
      Alinhamento: à esquerda (padrão do doc.text, x fixo em "margemEsq"). */
   const FONTE = "times";
   const margemEsq = 36;              // margem reduzida à esquerda (~1,27 cm)
-  const margemDir = 54;              // margem de segurança à direita (~1,9 cm)
+  const margemDir = 56;              // margem de segurança à direita (~2,0 cm)
   const margemTopo = 54;
   const margemFundo = 54;
   const pageW = doc.internal.pageSize.getWidth();
@@ -2769,8 +2808,11 @@ function gerarPDF(){
   // mas, se uma única palavra/token for mais largo que a própria largura
   // útil (ex.: fórmulas, números longos, termos sem espaços), força a
   // quebra por caracteres — garantindo que NENHUMA linha ultrapassa a
-  // margem direita, mesmo em casos extremos.
-  function quebrarTexto(texto, larguraMax){
+  // margem direita, mesmo em casos extremos. O texto é sempre sanitizado
+  // primeiro (ver sanitizarTextoPDF) para que a largura calculada aqui
+  // corresponda exactamente à largura que será impressa no PDF.
+  function quebrarTexto(textoOriginal, larguraMax){
+    const texto = sanitizarTextoPDF(textoOriginal);
     const linhas = [];
     let linhaAtual = "";
     function largura(txt){ return doc.getTextWidth(txt); }
@@ -2803,7 +2845,23 @@ function gerarPDF(){
     });
 
     if (linhaAtual) fecharLinha();
-    return linhas.length ? linhas : [""];
+
+    // Verificação final de segurança: se, por alguma razão, alguma linha
+    // ainda ultrapassar a largura útil (ex.: um único caractere muito
+    // largo), corta-a de forma dura para nunca desenhar fora da margem.
+    const linhasVerificadas = [];
+    linhas.forEach((linha) => {
+      if (largura(linha) <= larguraMax){ linhasVerificadas.push(linha); return; }
+      let restante = linha;
+      while (largura(restante) > larguraMax && restante.length > 1){
+        let corte = restante.length - 1;
+        while (corte > 1 && largura(restante.slice(0, corte)) > larguraMax) corte--;
+        linhasVerificadas.push(restante.slice(0, corte));
+        restante = restante.slice(corte);
+      }
+      if (restante) linhasVerificadas.push(restante);
+    });
+    return linhasVerificadas.length ? linhasVerificadas : [""];
   }
 
   // Garante que nenhum bloco de texto é cortado entre páginas
@@ -2821,7 +2879,7 @@ function gerarPDF(){
   doc.setFontSize(9);
   const linhasUniv = quebrarTexto(universidadeAtual.nome.toUpperCase(), largura);
   doc.setFont(FONTE,"bold");
-  doc.setFontSize(22);
+  doc.setFontSize(20);
   const linhasDisciplina = quebrarTexto(exameAtual.disciplina, largura);
   doc.setFont(FONTE,"normal");
   doc.setFontSize(9);
@@ -2829,7 +2887,7 @@ function gerarPDF(){
   const linhasInfo = quebrarTexto(textoInfo, largura);
 
   const alturaUniv = linhasUniv.length*alturaLinha(9);
-  const alturaDisciplina = linhasDisciplina.length*alturaLinha(22);
+  const alturaDisciplina = linhasDisciplina.length*alturaLinha(20);
   const alturaInfo = linhasInfo.length*alturaLinha(9);
   const padTopoBanda = 24, gapBanda = 8, padFundoBanda = 20;
   const alturaBanda = padTopoBanda + alturaUniv + gapBanda + alturaDisciplina + gapBanda + alturaInfo + padFundoBanda;
@@ -2844,7 +2902,7 @@ function gerarPDF(){
   doc.text(linhasUniv, margemEsq, y);
 
   y = padTopoBanda + alturaUniv + gapBanda + alturaDisciplina*0.75;
-  doc.setFontSize(22);
+  doc.setFontSize(20);
   doc.text(linhasDisciplina, margemEsq, y);
 
   y = padTopoBanda + alturaUniv + gapBanda + alturaDisciplina + gapBanda + alturaInfo*0.8;
@@ -2863,10 +2921,10 @@ function gerarPDF(){
 
   // Subtítulo / H2 (14-16pt, negrito)
   doc.setFont(FONTE,"bold");
-  doc.setFontSize(15);
+  doc.setFontSize(13);
   const linhasResultado = quebrarTexto(`Resultado: ${certas}/${total} (${percentagem}%)`, largura);
   doc.text(linhasResultado, margemEsq, y);
-  y += linhasResultado.length*alturaLinha(15) + espacoParagrafo;
+  y += linhasResultado.length*alturaLinha(13) + espacoParagrafo;
 
   // Legenda (8-9pt)
   doc.setFont(FONTE,"normal");
@@ -2878,7 +2936,9 @@ function gerarPDF(){
   doc.setTextColor(30,35,33);
 
   const letras = ["A","B","C","D","E","F"];
-  const tamanhoCorpo = 11;           // corpo do texto: mínimo 10pt (usa 11pt)
+  const tamanhoCorpo = 10;           // corpo do texto — reduzido de 11 para 10pt
+                                      // para caber sem transbordar mesmo em
+                                      // enunciados/explicações longos de Química
   const linhaCorpo = alturaLinha(tamanhoCorpo);
 
   exameAtual.questoes.forEach((q,i) => {
@@ -2887,13 +2947,13 @@ function gerarPDF(){
 
     novaLinhaSeNecessario(70);
 
-    // Subtítulo / H3 (14-16pt, negrito)
+    // Subtítulo / H3 (negrito)
     doc.setFont(FONTE,"bold");
-    doc.setFontSize(14);
+    doc.setFontSize(13);
     doc.setTextColor(acertou ? 30 : 179, acertou ? 122 : 38, acertou ? 76 : 30);
     const linhasPergunta = quebrarTexto(`Pergunta ${i+1} — ${acertou ? "CERTA" : "ERRADA"}`, largura);
     doc.text(linhasPergunta, margemEsq, y);
-    y += linhasPergunta.length*alturaLinha(14) + espacoParagrafo;
+    y += linhasPergunta.length*alturaLinha(13) + espacoParagrafo;
 
     // Corpo do texto (11pt)
     doc.setTextColor(30,35,33);
