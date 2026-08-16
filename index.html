@@ -2242,37 +2242,22 @@ function mostrarTela(id){
   }
 
   // Menu hambúrguer do cabeçalho: abre/fecha o painel de navegação,
-  // fecha ao clicar fora, ao premir Escape, ou ao escolher um link.
+  // fecha ao clicar fora, ao premir Escape, ao escolher um link, ou ao
+  // rolar a página. O scroll NUNCA fica bloqueado: o utilizador pode
+  // sempre rolar a página (para cima ou para baixo) mesmo com o menu
+  // aberto. Para o conteúdo nunca ficar escondido por baixo do painel
+  // aberto, a altura do cabeçalho (".topo", que inclui o painel quando
+  // expandido) é medida em tempo real e o espaçamento do conteúdo
+  // (".mc-sim-container") ajusta-se automaticamente a essa altura — ver
+  // "ajustarEspacoTopoFixo" acima. Assim que a rolagem começa, o painel
+  // fecha-se sozinho (recolhendo para cima, para dentro do cabeçalho),
+  // afastando-se do caminho do conteúdo.
   const menuBtn = document.getElementById("menuHamburguerBtn");
   const menuPainel = document.getElementById("menuHamburguerPainel");
-  let scrollYAntesDoMenu = 0;
-  function trancarScrollMenu(){
-    scrollYAntesDoMenu = window.scrollY || document.documentElement.scrollTop || 0;
-    document.body.style.position = "fixed";
-    document.body.style.top = (-scrollYAntesDoMenu) + "px";
-    document.body.style.left = "0";
-    document.body.style.right = "0";
-    document.body.style.width = "100%";
-    if(window.self !== window.top){
-      window.parent.postMessage({ tipo: "simuladorMozCarreirasTrancarScroll" }, "*");
-    }
-  }
-  function destrancarScrollMenu(){
-    document.body.style.position = "";
-    document.body.style.top = "";
-    document.body.style.left = "";
-    document.body.style.right = "";
-    document.body.style.width = "";
-    window.scrollTo(0, scrollYAntesDoMenu);
-    if(window.self !== window.top){
-      window.parent.postMessage({ tipo: "simuladorMozCarreirasDestrancarScroll" }, "*");
-    }
-  }
   function fecharMenuHamburguer(){
     if(!menuBtn || !menuPainel) return;
     menuBtn.setAttribute("aria-expanded", "false");
     menuPainel.classList.remove("aberto");
-    destrancarScrollMenu();
   }
   function alternarMenuHamburguer(){
     if(!menuBtn || !menuPainel) return;
@@ -2281,7 +2266,6 @@ function mostrarTela(id){
     else{
       menuBtn.setAttribute("aria-expanded", "true");
       menuPainel.classList.add("aberto");
-      trancarScrollMenu();
     }
   }
   if(menuBtn){
@@ -2298,6 +2282,12 @@ function mostrarTela(id){
   document.addEventListener("keydown", function(evento){
     if(evento.key === "Escape") fecharMenuHamburguer();
   });
+  // Fecha o menu automaticamente assim que a página começa a rolar
+  // (em qualquer direção), para o painel "se afastar para cima" e
+  // nunca haver conteúdo a passar por baixo dele.
+  window.addEventListener("scroll", function(){
+    if(menuPainel && menuPainel.classList.contains("aberto")) fecharMenuHamburguer();
+  }, {passive:true});
 
   document.addEventListener("click", function(evento){
     const btn = evento.target.closest(".mc-exam-app .btn");
