@@ -67,6 +67,7 @@
     -ms-text-size-adjust:100%;
     text-size-adjust:100%;
     scroll-behavior:smooth;
+    overscroll-behavior-y:none;
   }
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto;}
@@ -134,20 +135,29 @@
     z-index:9999;
     box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 10px rgba(0,0,0,0.10);
     transition:box-shadow 0.25s ease;
+    transform:translateZ(0);
+    -webkit-transform:translateZ(0);
+    will-change:box-shadow;
+    backface-visibility:hidden;
   }
-  /* IMPORTANTE — porque é que isto por si só não chega:
-     este widget corre dentro de um iframe. Um "position:fixed" só fica
-     mesmo colado ao TOPO DO ECRÃ REAL, sem se mexer nunca, se o iframe
-     tiver a sua própria área de scroll (altura = altura do ecrã, com o
-     conteúdo a rolar por dentro dele). Se o iframe continuar a "crescer"
-     para caber todo o conteúdo (como estava configurado antes, para não
-     haver scroll duplo), o "fixed" fica preso ao topo do PRÓPRIO IFRAME
-     — e por isso desaparece assim que se rola a página do blog.
-     Por isso falta UMA linha de CSS no tema do Blogger (ver instruções
-     mais abaixo, junto ao código de integração do iframe) que trava a
-     altura do iframe em 100dvh nesta página. Com essa linha aplicada,
-     o cabeçalho fica 100% imóvel, sempre visível por inteiro, tanto em
-     mobile como em desktop. */
+  /* IMPORTANTE — como o cabeçalho fica 100% fixo, mesmo dentro do iframe:
+     1) O tema do Blogger (theme-corrigido.xml) trava a altura da página
+        do post de Exames em 100dvh e desliga por completo o scroll do
+        DOCUMENTO PAI (overflow:hidden no html/body dessa página) — assim
+        o blog nunca "empurra" o iframe para cima.
+     2) Nesse mesmo tema, o próprio <iframe class="mc-simulador-frame">
+        passa a usar position:fixed, cobrindo o ecrã inteiro (top/left/
+        right/bottom:0). Isto desacopla totalmente o iframe do fluxo de
+        scroll do documento pai — o iframe fica "colado" ao ecrã real,
+        aconteça o que acontecer na página do blog.
+     3) Dentro deste ficheiro, o cabeçalho (".topo") usa position:fixed
+        relativo ao PRÓPRIO documento do iframe (que tem exactamente a
+        altura do ecrã). Só o conteúdo por baixo dele rola; o cabeçalho,
+        a marca, o cronómetro e o menu hambúrguer nunca se mexem, nem ao
+        rolar para cima, para baixo, nem com o efeito de "elástico" do
+        Safari/iOS (bloqueado com overscroll-behavior:none).
+     Com estas três camadas aplicadas em conjunto, o cabeçalho fica 100%
+     imóvel, sempre visível por inteiro, tanto em mobile como em desktop. */
   .mc-exam-app .topo.elevado{box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 22px rgba(0,0,0,0.20);}
   .mc-exam-app .topo-inner{
     max-width:900px; margin:0 auto; padding:18px 20px;
