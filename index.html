@@ -2892,8 +2892,9 @@ function gerarPDF(){
   // justo à imagem.
   const padLogo = 11;
   const raioCaixaLogo = 10;
-  const caixaLogoLargura = logoLargura + padLogo*2;
-  const caixaLogoAltura = logoAltura + padLogo*2;
+  const ladoCaixaLogo = Math.max(logoLargura, logoAltura) + padLogo*2;
+  const caixaLogoLargura = ladoCaixaLogo;
+  const caixaLogoAltura = ladoCaixaLogo;
   const gapLogo = 18;
   const larguraCabecalho = Math.max(120, largura - caixaLogoLargura - gapLogo);
 
@@ -2944,8 +2945,8 @@ function gerarPDF(){
     doc.setDrawColor(201,162,75);
     doc.setLineWidth(1.1);
     doc.roundedRect(caixaLogoX, caixaLogoY, caixaLogoLargura, caixaLogoAltura, raioCaixaLogo, raioCaixaLogo, "FD");
-    const logoX = caixaLogoX + padLogo;
-    const logoY = caixaLogoY + padLogo;
+    const logoX = caixaLogoX + (caixaLogoLargura - logoLargura) / 2;
+    const logoY = caixaLogoY + (caixaLogoAltura - logoAltura) / 2;
     doc.addImage(LOGO_MOZ_CARREIRAS_PNG, "PNG", logoX, logoY, logoLargura, logoAltura);
   } catch(erroLogo){
     // Se a imagem falhar por algum motivo, o PDF continua a ser gerado
