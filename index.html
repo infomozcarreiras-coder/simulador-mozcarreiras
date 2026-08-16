@@ -2740,10 +2740,13 @@ function gerarPDF(){
   /* ---- Diretrizes de formatação aplicadas ----
      Fonte: Times New Roman (equivalente "times" do PDF).
      Margens: 72pt (2,54 cm) em todas as direções — acima do mínimo de 2,5 cm.
-     Entrelinha: fator 1.3 (dentro do intervalo 1.15–1.5).
+     Entrelinha: fator 1.3 (dentro do intervalo 1.15–1.5), aplicado via
+       setLineHeightFactor para que TODO o texto — incluindo o cabeçalho —
+       seja sempre quebrado (splitTextToSize) dentro da largura útil e
+       nunca ultrapasse a margem direita.
      Espaçamento entre parágrafos: 6 a 8 pt.
      Hierarquia: H1 22pt / H2-H3 14-15pt / corpo 11pt / legendas 9pt.
-     Alinhamento: à esquerda (padrão do doc.text). */
+     Alinhamento: à esquerda (padrão do doc.text, x fixo em "margem"). */
   const FONTE = "times";
   const margem = 72;                 // 2,54 cm de segurança em todos os lados
   const pageW = doc.internal.pageSize.getWidth();
@@ -2751,6 +2754,7 @@ function gerarPDF(){
   const largura = pageW - margem*2;  // caixa de texto nunca ultrapassa a margem
   const entrelinha = 1.3;            // dentro de 1.15–1.5
   const espacoParagrafo = 8;         // 6 a 8 pt após cada parágrafo
+  doc.setLineHeightFactor(entrelinha);
   let y = margem;
 
   function alturaLinha(tamanhoFonte){ return tamanhoFonte*entrelinha; }
@@ -2763,26 +2767,43 @@ function gerarPDF(){
     }
   }
 
-  // Cabeçalho (banda decorativa a toda a largura — não é conteúdo de corpo,
-  // por isso não está sujeita à margem lateral, apenas o texto dentro dela)
-  const alturaBanda = 118;
+  // ---- Cabeçalho ----
+  // Pré-calcula quantas linhas cada parte vai ocupar (com wrap) para
+  // dimensionar a banda dinamicamente e nunca cortar o texto no fundo dela.
+  doc.setFont(FONTE,"bold");
+  doc.setFontSize(9);
+  const linhasUniv = doc.splitTextToSize(universidadeAtual.nome.toUpperCase(), largura);
+  doc.setFont(FONTE,"bold");
+  doc.setFontSize(22);
+  const linhasDisciplina = doc.splitTextToSize(exameAtual.disciplina, largura);
+  doc.setFont(FONTE,"normal");
+  doc.setFontSize(9);
+  const textoInfo = `Ano: ${exameAtual.ano}   |   Duração: ${exameAtual.duracaoMinutos} min   |   Correção Completa`;
+  const linhasInfo = doc.splitTextToSize(textoInfo, largura);
+
+  const alturaUniv = linhasUniv.length*alturaLinha(9);
+  const alturaDisciplina = linhasDisciplina.length*alturaLinha(22);
+  const alturaInfo = linhasInfo.length*alturaLinha(9);
+  const padTopoBanda = 24, gapBanda = 8, padFundoBanda = 20;
+  const alturaBanda = padTopoBanda + alturaUniv + gapBanda + alturaDisciplina + gapBanda + alturaInfo + padFundoBanda;
+
   doc.setFillColor(11,61,46);
   doc.rect(0,0,pageW,alturaBanda,"F");
   doc.setTextColor(255,255,255);
 
-  // Legenda (8-9pt)
+  y = padTopoBanda + alturaUniv*0.8;
   doc.setFont(FONTE,"bold");
   doc.setFontSize(9);
-  doc.text(universidadeAtual.nome.toUpperCase(), margem, 28);
+  doc.text(linhasUniv, margem, y);
 
-  // Título Principal / H1 (20-24pt, negrito)
+  y = padTopoBanda + alturaUniv + gapBanda + alturaDisciplina*0.75;
   doc.setFontSize(22);
-  doc.text(exameAtual.disciplina, margem, 62);
+  doc.text(linhasDisciplina, margem, y);
 
-  // Legenda (8-9pt)
+  y = padTopoBanda + alturaUniv + gapBanda + alturaDisciplina + gapBanda + alturaInfo*0.8;
   doc.setFont(FONTE,"normal");
   doc.setFontSize(9);
-  doc.text(`Ano: ${exameAtual.ano}   |   Duração: ${exameAtual.duracaoMinutos} min   |   Correção Completa`, margem, alturaBanda-16);
+  doc.text(linhasInfo, margem, y);
 
   y = alturaBanda + 40;
   doc.setTextColor(30,35,33);
@@ -2796,15 +2817,17 @@ function gerarPDF(){
   // Subtítulo / H2 (14-16pt, negrito)
   doc.setFont(FONTE,"bold");
   doc.setFontSize(15);
-  doc.text(`Resultado: ${certas}/${total} (${percentagem}%)`, margem, y);
-  y += alturaLinha(15) + espacoParagrafo;
+  const linhasResultado = doc.splitTextToSize(`Resultado: ${certas}/${total} (${percentagem}%)`, largura);
+  doc.text(linhasResultado, margem, y);
+  y += linhasResultado.length*alturaLinha(15) + espacoParagrafo;
 
   // Legenda (8-9pt)
   doc.setFont(FONTE,"normal");
   doc.setFontSize(9);
   doc.setTextColor(107,117,112);
-  doc.text(`Tempo usado: ${formatarTempo(tempoTotalUsadoSeg)}  |  Gerado por Moz Carreiras — Simulador de Exames de Admissão`, margem, y);
-  y += alturaLinha(9) + espacoParagrafo + 12;
+  const linhasTempo = doc.splitTextToSize(`Tempo usado: ${formatarTempo(tempoTotalUsadoSeg)}  |  Gerado por Moz Carreiras — Simulador de Exames de Admissão`, largura);
+  doc.text(linhasTempo, margem, y);
+  y += linhasTempo.length*alturaLinha(9) + espacoParagrafo + 12;
   doc.setTextColor(30,35,33);
 
   const letras = ["A","B","C","D","E","F"];
@@ -2821,8 +2844,9 @@ function gerarPDF(){
     doc.setFont(FONTE,"bold");
     doc.setFontSize(14);
     doc.setTextColor(acertou ? 30 : 179, acertou ? 122 : 38, acertou ? 76 : 30);
-    doc.text(`Pergunta ${i+1} — ${acertou ? "CERTA" : "ERRADA"}`, margem, y);
-    y += alturaLinha(14) + espacoParagrafo;
+    const linhasPergunta = doc.splitTextToSize(`Pergunta ${i+1} — ${acertou ? "CERTA" : "ERRADA"}`, largura);
+    doc.text(linhasPergunta, margem, y);
+    y += linhasPergunta.length*alturaLinha(14) + espacoParagrafo;
 
     // Corpo do texto (11pt)
     doc.setTextColor(30,35,33);
