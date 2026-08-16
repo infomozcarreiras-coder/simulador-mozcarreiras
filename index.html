@@ -2925,10 +2925,14 @@ function gerarPDF(){
   doc.text(linhasInfo, margemEsq, y);
 
   // Logo do site, encostada ao canto superior direito do cabeçalho,
-  // centrada verticalmente na altura da banda.
+  // centrada verticalmente na altura da banda. Um fundo branco do
+  // mesmo tamanho da logo fica por trás dela, para dar nitidez e
+  // contraste sobre o verde-escuro do cabeçalho.
   try{
     const logoX = pageW - margemDir - logoLargura;
     const logoY = (alturaBanda - logoAltura) / 2;
+    doc.setFillColor(255,255,255);
+    doc.rect(logoX, logoY, logoLargura, logoAltura, "F");
     doc.addImage(LOGO_MOZ_CARREIRAS_PNG, "PNG", logoX, logoY, logoLargura, logoAltura);
   } catch(erroLogo){
     // Se a imagem falhar por algum motivo, o PDF continua a ser gerado
