@@ -11,8 +11,8 @@
 <style>
   :root{
     /* Paleta */
-    --verde: #0B3D2E;
-    --verde-escuro: #06261C;
+    --verde: #035A56;
+    --verde-escuro: #023835;
     --dourado: #C9A24B;
     --dourado-claro: #E4C878;
     --creme: #F7F5EF;
@@ -24,7 +24,7 @@
     --sucesso-bg: #EAF5EE;
     --erro: #B3261E;
     --erro-bg: #FBEBEA;
-    --primary-light: #EAF5EE;
+    --primary-light: #EDF2F2;
     --footer-border: rgba(255,255,255,0.08);
 
     /* Fonte do simulador — por omissão usa uma pilha profissional neutra.
@@ -50,9 +50,9 @@
 
     /* Raios e sombras — tokens reutilizados em toda a interface */
     --raio-sm: 8px; --raio-md: 12px; --raio-lg: 16px; --raio-full: 999px;
-    --sombra-sm: 0 2px 8px rgba(11,61,46,0.06);
-    --sombra-md: 0 6px 18px rgba(11,61,46,0.09);
-    --sombra-lg: 0 14px 34px rgba(11,61,46,0.14);
+    --sombra-sm: 0 2px 8px rgba(3,90,86,0.06);
+    --sombra-md: 0 6px 18px rgba(3,90,86,0.09);
+    --sombra-lg: 0 14px 34px rgba(3,90,86,0.14);
 
     /* Curvas de easing partilhadas por todas as transições da interface */
     --ease-suave: cubic-bezier(0.16,1,0.3,1);
@@ -410,7 +410,7 @@
     display:flex; align-items:center; justify-content:space-between; gap:12px;
     padding:16px 20px; cursor:pointer; user-select:none;
   }
-  .mc-exam-app .texto-apoio-cabecalho:hover{background:rgba(11,61,46,0.04);}
+  .mc-exam-app .texto-apoio-cabecalho:hover{background:rgba(3,90,86,0.04);}
   .mc-exam-app .texto-apoio-titulo{display:flex; align-items:center; gap:10px; min-width:0;}
   .mc-exam-app .texto-apoio-titulo .icone{font-size:17px; flex-shrink:0;}
   .mc-exam-app .texto-apoio-titulo strong{font-size:14.5px; color:var(--verde-escuro); font-weight:600;}
@@ -490,7 +490,7 @@
     font-family:var(--fonte-app) !important;
     letter-spacing:0.005em;
   }
-  .mc-exam-app .btn:hover{background:var(--verde-escuro); box-shadow:0 4px 14px rgba(11,61,46,0.22); transform:translateY(-1px);}
+  .mc-exam-app .btn:hover{background:var(--verde-escuro); box-shadow:0 4px 14px rgba(3,90,86,0.22); transform:translateY(-1px);}
   .mc-exam-app .btn:active{transform:translateY(0) scale(0.98); box-shadow:none;}
   .mc-exam-app .btn.dourado{background:var(--dourado); color:var(--verde-escuro);}
   .mc-exam-app .btn.dourado:hover{background:var(--dourado-claro); box-shadow:0 4px 14px rgba(201,162,75,0.35);}
@@ -512,7 +512,7 @@
     background:rgba(255,255,255,0.45); transform:scale(0);
     animation:mcOndular 0.55s ease-out forwards; z-index:0;
   }
-  .mc-exam-app .btn.contorno .ondulacao{background:rgba(11,61,46,0.12);}
+  .mc-exam-app .btn.contorno .ondulacao{background:rgba(3,90,86,0.12);}
   @keyframes mcOndular{to{transform:scale(2.6); opacity:0;}}
 
   .mc-exam-app /* Tela de exame */
