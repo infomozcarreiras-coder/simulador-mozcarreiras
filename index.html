@@ -125,112 +125,39 @@
   .mc-exam-app ::selection{background:var(--dourado-claro); color:var(--verde-escuro);}
 
 
-  .mc-exam-app /* Cabeçalho global */
-  .topo{
-    background:var(--verde);
-    color:#fff;
+  .mc-exam-app /* Cronómetro flutuante do exame — o cabeçalho fixo do
+     simulador foi removido porque o tema do Blogger (theme-corrigido.xml)
+     já apresenta o seu próprio cabeçalho fixo por cima do iframe; assim
+     só existe UM cabeçalho visível (o do blog), evitando duplicação. */
+  #cronometro-topo{
     position:fixed;
-    top:0; left:0; right:0;
-    width:100%;
+    top:14px; right:14px;
     z-index:9999;
-    box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 10px rgba(0,0,0,0.10);
-    transition:box-shadow 0.25s ease;
     transform:translateZ(0);
     -webkit-transform:translateZ(0);
-    will-change:box-shadow;
-    backface-visibility:hidden;
   }
-  /* IMPORTANTE — como o cabeçalho fica 100% fixo, mesmo dentro do iframe:
-     1) O tema do Blogger (theme-corrigido.xml) trava a altura da página
-        do post de Exames em 100dvh e desliga por completo o scroll do
-        DOCUMENTO PAI (overflow:hidden no html/body dessa página) — assim
-        o blog nunca "empurra" o iframe para cima.
-     2) Nesse mesmo tema, o próprio <iframe class="mc-simulador-frame">
-        passa a usar position:fixed, cobrindo o ecrã inteiro (top/left/
-        right/bottom:0). Isto desacopla totalmente o iframe do fluxo de
-        scroll do documento pai — o iframe fica "colado" ao ecrã real,
-        aconteça o que acontecer na página do blog.
-     3) Dentro deste ficheiro, o cabeçalho (".topo") usa position:fixed
-        relativo ao PRÓPRIO documento do iframe (que tem exactamente a
-        altura do ecrã). Só o conteúdo por baixo dele rola; o cabeçalho,
-        a marca, o cronómetro e o menu hambúrguer nunca se mexem, nem ao
-        rolar para cima, para baixo, nem com o efeito de "elástico" do
-        Safari/iOS (bloqueado com overscroll-behavior:none).
-     Com estas três camadas aplicadas em conjunto, o cabeçalho fica 100%
-     imóvel, sempre visível por inteiro, tanto em mobile como em desktop. */
-  .mc-exam-app .topo.elevado{box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 22px rgba(0,0,0,0.20);}
-  .mc-exam-app .topo-inner{
-    max-width:900px; margin:0 auto; padding:18px 20px;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .mc-exam-app .topo .marca{display:flex; align-items:center; gap:12px;}
-  .mc-exam-app .topo .marca .pastilha{
-    width:52px;height:52px;border-radius:12px;flex-shrink:0;
-    background:linear-gradient(150deg,var(--dourado),var(--dourado-claro));
-    display:flex;align-items:center;justify-content:center;
-    color:var(--verde-escuro); font-weight:700; font-family:var(--fonte-app) !important; font-size:26px;
-    transition:transform 0.2s ease;
-  }
-  .mc-exam-app .topo .marca:hover .pastilha{transform:rotate(-4deg) scale(1.04);}
-  .mc-exam-app .topo .marca-texto{line-height:1.2;}
-  .mc-exam-app .topo .marca-texto strong{display:block; font-size:19px; font-weight:600; font-family:var(--fonte-app) !important;}
-  .mc-exam-app .topo .marca-texto span{font-size:13px; opacity:0.8; letter-spacing:0.05em; text-transform:uppercase; font-family:var(--fonte-app) !important;}
-
   .mc-exam-app .cronometro{
     font-family:var(--fonte-mono) !important;
     font-variant-numeric:tabular-nums;
-    background:rgba(255,255,255,0.08);
+    background:var(--verde);
+    color:#fff;
     border:1px solid rgba(255,255,255,0.18);
     padding:8px 14px;
     border-radius:var(--raio-sm);
     font-size:17px;
     font-weight:500;
     display:flex; align-items:center; gap:8px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.14);
     transition:background 0.3s, border-color 0.3s, color 0.3s;
   }
   .mc-exam-app .cronometro.alerta{
-    background:rgba(179,38,30,0.85);
+    background:rgba(179,38,30,0.95);
     border-color:transparent;
     animation:pulsar 1s infinite;
   }
   @keyframes pulsar{0%,100%{opacity:1;}50%{opacity:0.65;}}
 
-  .mc-exam-app .topo-acoes{display:flex; align-items:center; gap:10px; flex-shrink:0;}
-
-  .mc-exam-app .menu-hamburguer-btn{
-    flex-shrink:0; width:42px; height:42px; padding:8px;
-    background:transparent; border:none; border-radius:10px; cursor:pointer;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
-    transition:background 0.2s ease;
-  }
-  .mc-exam-app .menu-hamburguer-btn:hover{background:rgba(255,255,255,0.1);}
-  .mc-exam-app .menu-hamburguer-btn:active{transform:scale(0.94);}
-  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"]{background:rgba(255,255,255,0.1);}
-  .mc-exam-app .menu-hamburguer-btn span{
-    display:block; width:19px; height:2px; border-radius:2px; background:#fff;
-    transition:transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
-    transform-origin:center;
-  }
-  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg);}
-  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] span:nth-child(2){opacity:0;}
-  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
-
-  .mc-exam-app .menu-hamburguer-painel{
-    background:#fff; box-shadow:none;
-    display:grid; grid-template-rows:0fr; transition:grid-template-rows 1s cubic-bezier(0.22,1,0.36,1), box-shadow 1s ease, visibility 0s linear 1s;
-    pointer-events:none; overflow:hidden; visibility:hidden;
-  }
-  .mc-exam-app .menu-hamburguer-painel.aberto{grid-template-rows:1fr; pointer-events:auto; box-shadow:0 4px 14px rgba(0,0,0,0.10); visibility:visible; transition:grid-template-rows 1s cubic-bezier(0.22,1,0.36,1), box-shadow 1s ease, visibility 0s linear 0s;}
-  .mc-exam-app .menu-hamburguer-painel .menu-hamburguer-inner{overflow:hidden; min-height:0; display:flex; flex-direction:column; padding:4px 0;}
-  .mc-exam-app .menu-hamburguer-painel a{
-    display:block; padding:11px 20px; margin:0;
-    font-family:var(--fonte-app) !important; font-size:14px; font-weight:500;
-    color:var(--carvao); text-decoration:none; transition:background 0.2s ease;
-  }
-  .mc-exam-app .menu-hamburguer-painel a:hover{background:var(--creme); color:var(--verde-escuro);}
-  .mc-exam-app .menu-hamburguer-painel a.link-ativo{background:var(--sucesso-bg); color:var(--verde); font-weight:700;}
-
-  .mc-exam-app .mc-sim-container{max-width:900px; width:100%; margin:0 auto; padding:20px 16px 24px; box-sizing:border-box; padding-top:calc(20px + var(--mc-topo-altura, 76px));}
+  .mc-exam-app .mc-sim-container{max-width:900px; width:100%; margin:0 auto; padding:20px 16px 24px; box-sizing:border-box;}
 
   .mc-exam-app /* Cabeçalhos de secção reutilizáveis */
   .hero{padding:var(--sp-7) 0 var(--sp-2);}
@@ -699,34 +626,8 @@
 </head>
 <body>
 <div class="mc-exam-app" lang="pt">
-<div class="topo">
-  <div class="topo-inner">
-    <div class="marca">
-      <div class="pastilha">🎓</div>
-      <div class="marca-texto">
-        <strong>Moz Carreiras</strong>
-        <span>Simulador de Exames</span>
-      </div>
-    </div>
-    <div class="topo-acoes">
-      <div id="cronometro-topo" class="cronometro hidden" role="timer" aria-live="polite" aria-atomic="true">
-        <span aria-hidden="true">⏱</span><span id="texto-cronometro">00:00</span>
-      </div>
-      <button type="button" id="menuHamburguerBtn" class="menu-hamburguer-btn" aria-label="Abrir menu" aria-haspopup="true" aria-expanded="false" aria-controls="menuHamburguerPainel">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </div>
-  <nav id="menuHamburguerPainel" class="menu-hamburguer-painel" aria-label="Menu Moz Carreiras">
-    <div class="menu-hamburguer-inner">
-      <a href="https://mozcarreiras.blogspot.com/search/label/Not%C3%ADcias" target="_top">Notícias</a>
-      <a href="https://mozcarreiras.blogspot.com/p/contactos.html" target="_top">Contactos</a>
-      <a href="https://mozcarreiras.blogspot.com/p/bolsas-de-estudo.html" target="_top">Bolsas de Estudo</a>
-      <a href="https://mozcarreiras.blogspot.com/" target="_top">Vagas de Emprego</a>
-      <a href="https://mozcarreiras.blogspot.com/search/label/Dicas" target="_top">Dicas de Carreira</a>
-      <a href="https://mozcarreiras.blogspot.com/p/exames-de-admissao.html" target="_top" class="link-ativo">Exames de Admissão</a>
-    </div>
-  </nav>
+<div id="cronometro-topo" class="cronometro hidden" role="timer" aria-live="polite" aria-atomic="true">
+  <span aria-hidden="true">⏱</span><span id="texto-cronometro">00:00</span>
 </div>
 
 <div class="mc-sim-container">
