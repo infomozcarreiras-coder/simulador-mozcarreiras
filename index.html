@@ -7503,21 +7503,11 @@ function gerarPDF(){
 renderHome();
 
 /* ==========================================================
-   SUBSTITUIÇÃO DO CABEÇALHO DO SITE PELO CABEÇALHO DO SIMULADOR
-   -----------------------------------------------------------
-   Quando este widget está embebido num iframe (ex: no Blogger),
-   pede à página pai, assim que carrega, para ocultar o cabeçalho
-   do site/blog — para que apareça apenas o cabeçalho do próprio
-   simulador (".topo" acima), evitando dois cabeçalhos sobrepostos
-   na mesma página. É preciso colar o script de instalação lá em
-   baixo (junto ao de auto-ajuste de altura) UMA VEZ no Blogger.
+   NOTA: este widget deixou de pedir à página pai para ocultar o
+   cabeçalho do site/blog. O cabeçalho do template do Blogger
+   mantém-se sempre visível; o widget já não envia a mensagem
+   "simuladorMozCarreirasOcultarCabecalhoSite".
    ========================================================== */
-(function(){
-  if(window.self === window.top) return; // só corre dentro de um iframe
-  window.addEventListener("load", function(){
-    window.parent.postMessage({ tipo: "simuladorMozCarreirasOcultarCabecalhoSite" }, "*");
-  });
-})();
 
 /* ==========================================================
    AUTO-AJUSTE DE ALTURA E SCROLL QUANDO EMBEBIDO NUM IFRAME (BLOGGER)
@@ -7531,22 +7521,14 @@ renderHome();
 
    IMPORTANTE: como o iframe não tem scroll próprio (cresce até
    caber todo o conteúdo), quem tem de rolar de facto é a página
-   pai. Este ficheiro (hospedado no GitHub) já envia as três
-   mensagens necessárias (altura, scroll e ocultar cabeçalho do
-   site) — falta colar o código JavaScript abaixo UMA VEZ no
-   Blogger, dentro de uma etiqueta de script (Tema → Editar HTML,
-   perto do fecho do body, ou num gadget "HTML/JavaScript" na
-   mesma página do iframe). Ele encontra o iframe automaticamente,
-   não precisa de nenhum ID:
+   pai. O cabeçalho do template do Blogger mantém-se sempre visível
+   — este ficheiro já não pede para o ocultar. Falta colar o código
+   JavaScript abaixo UMA VEZ no Blogger, dentro de uma etiqueta de
+   script (Tema → Editar HTML, perto do fecho do body, ou num
+   gadget "HTML/JavaScript" na mesma página do iframe). Ele encontra
+   o iframe automaticamente, não precisa de nenhum ID:
 
      (function(){
-       // AJUSTA AQUI: o(s) seletor(es) CSS do cabeçalho do teu
-       // site/blog (o que aparece por cima do iframe do simulador).
-       // Exemplos comuns em temas do Blogger: "#header", ".header",
-       // "header", "#Header1", ".header-outer". Podes indicar mais
-       // do que um seletor, separado por vírgula.
-       var SELETOR_CABECALHO_SITE = "#header";
-
        window.addEventListener("message", function(event){
          if(!event.data || !event.data.tipo) return;
          // Encontra, entre todos os iframes da página, aquele que
@@ -7564,14 +7546,6 @@ renderHome();
          if(event.data.tipo === "simuladorMozCarreirasScrollTopo"){
            var y = iframe.getBoundingClientRect().top + window.pageYOffset - 16;
            window.scrollTo({ top: y, behavior: "smooth" });
-         }
-         if(event.data.tipo === "simuladorMozCarreirasOcultarCabecalhoSite"){
-           // Substitui o cabeçalho do site pelo cabeçalho do
-           // simulador: oculta o(s) elemento(s) do cabeçalho do
-           // blog enquanto o widget estiver na página.
-           document.querySelectorAll(SELETOR_CABECALHO_SITE).forEach(function(el){
-             el.style.display = "none";
-           });
          }
          if(event.data.tipo === "simuladorMozCarreirasTrancarScroll"){
            // Impede a página do blog de rolar por baixo do widget
