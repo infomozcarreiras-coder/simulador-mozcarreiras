@@ -704,12 +704,17 @@
 .mc-exam-app .footer-copyright{color:rgba(255,255,255,0.5) !important;font-size:11px !important;text-align:center !important;letter-spacing:0.4px !important}}
 @media (min-width:641px) and (max-width:900px){.mc-exam-app .footer-bottom{flex-direction:column !important;gap:10px !important;text-align:center !important}}
 @media (max-width:640px){
+.mc-exam-app .footer-container{padding:0 14px !important}
 .mc-exam-app .footer-col:has(.footer-nav-list){width:100% !important;max-width:100% !important}
-.mc-exam-app .footer-nav-list{display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;justify-content:flex-start !important;align-items:center !important;gap:0 !important;margin:0 !important;width:100%;overflow-x:auto !important;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
-.mc-exam-app .footer-nav-list::-webkit-scrollbar{display:none}
-.mc-exam-app .footer-nav-list li{padding:12px 0 !important;flex-shrink:0}
-.mc-exam-app .footer-nav-list li:not(:last-child)::after{margin:0 12px !important}
-.mc-exam-app .footer-nav-list li a{font-size:12px !important;white-space:nowrap !important}
+.mc-exam-app .footer-nav-list{display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;justify-content:space-between !important;align-items:center !important;gap:0 !important;margin:0 !important;width:100%;overflow:visible !important}
+.mc-exam-app .footer-nav-list li{padding:12px 0 !important;flex-shrink:1;min-width:0}
+.mc-exam-app .footer-nav-list li:not(:last-child)::after{margin:0 clamp(3px,1.6vw,10px) !important;flex-shrink:0}
+.mc-exam-app .footer-nav-list li a{font-size:clamp(7.5px,2.65vw,11px) !important;white-space:nowrap !important;letter-spacing:-0.15px !important}
+}
+@media (max-width:360px){
+.mc-exam-app .footer-container{padding:0 10px !important}
+.mc-exam-app .footer-nav-list li:not(:last-child)::after{margin:0 3px !important}
+.mc-exam-app .footer-nav-list li a{font-size:6.8px !important;letter-spacing:-0.2px !important}
 }
 .mc-exam-app .footer-copyright{font-weight:400 !important}
 .mc-exam-app .footer-copyright{font-weight:500}
