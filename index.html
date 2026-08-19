@@ -658,6 +658,41 @@
   .mc-exam-app .explicacao{margin-top:12px; background:var(--creme); border-radius:10px; padding:14px 16px; font-size:14px; line-height:1.65; color:var(--carvao);}
   .mc-exam-app .explicacao .rotulo-exp{font-weight:700; color:var(--verde); display:block; margin-bottom:4px; font-size:12.5px; text-transform:uppercase; letter-spacing:0.04em;}
 
+  .mc-exam-app /* Rodapé — réplica exacta do rodapé do template principal do blog,
+     para que apareça mesmo com o rodapé do site desligado nesta página. */
+  .rodape-site{
+    background:var(--verde); color:rgba(255,255,255,0.78);
+    padding:0; margin-top:44px; position:relative; overflow:hidden;
+  }
+  .mc-exam-app .rodape-site::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg,var(--dourado) 0%,var(--dourado-claro) 50%,var(--dourado) 100%);
+    z-index:2;
+  }
+  .mc-exam-app .rodape-container{max-width:900px; margin:0 auto; padding:0 20px; box-sizing:border-box;}
+  .mc-exam-app .rodape-top{display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:12px 28px; padding:20px 0 16px;}
+  .mc-exam-app .rodape-nav{list-style:none; margin:0; padding:0; display:flex; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:center; gap:0;}
+  .mc-exam-app .rodape-nav li{display:flex; align-items:center;}
+  .mc-exam-app .rodape-nav li:not(:last-child)::after{content:''; width:1px; height:12px; background:rgba(255,255,255,0.18); margin:0 14px;}
+  .mc-exam-app .rodape-nav li a{color:rgba(255,255,255,0.78); text-decoration:none; font-size:12.5px; font-weight:500; letter-spacing:0.2px; white-space:nowrap; transition:color 0.2s ease; font-family:var(--fonte-app) !important;}
+  .mc-exam-app .rodape-nav li a:hover{color:var(--dourado);}
+  .mc-exam-app .rodape-bottom{
+    background:var(--verde); padding:12px 24px; margin-top:0;
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+    gap:8px 16px; text-align:center; box-sizing:border-box;
+  }
+  .mc-exam-app .rodape-copyright{margin:0; font-weight:500; font-size:11px; color:rgba(255,255,255,0.5); letter-spacing:0.4px; font-family:var(--fonte-app) !important;}
+  @media(max-width:900px){
+    .mc-exam-app .rodape-top{justify-content:center; text-align:center; padding:18px 0 14px;}
+    .mc-exam-app .rodape-nav{justify-content:center;}
+  }
+  @media(max-width:480px){
+    .mc-exam-app .rodape-top{flex-direction:column; gap:10px 0; padding:16px 0 12px;}
+    .mc-exam-app .rodape-nav{justify-content:center; row-gap:6px;}
+    .mc-exam-app .rodape-nav li:not(:last-child)::after{margin:0 10px;}
+    .mc-exam-app .rodape-bottom{padding:10px 20px 14px;}
+  }
+
 </style>
 </head>
 <body>
@@ -760,6 +795,24 @@
   <div id="tela-resultados" class="hidden"></div>
 
 </div>
+
+<!-- RODAPÉ — mesmo rodapé do template principal do blog (nav + copyright),
+     replicado aqui porque o tema oculta o rodapé do site nesta página. -->
+<footer class="rodape-site">
+  <div class="rodape-container">
+    <div class="rodape-top">
+      <ul class="rodape-nav">
+        <li><a href="https://mozcarreiras.blogspot.com/p/sobre-nos.html" target="_top">Sobre Nós</a></li>
+        <li><a href="https://mozcarreiras.blogspot.com/p/contactos.html" target="_top">Contactos</a></li>
+        <li><a href="https://mozcarreiras.blogspot.com/p/politica-de-privacidade.html" target="_top">Políticas de Privacidade</a></li>
+        <li><a href="https://mozcarreiras.blogspot.com/p/termos-e-usos.html" target="_top">Termos e Usos</a></li>
+      </ul>
+    </div>
+    <div class="rodape-bottom">
+      <p class="rodape-copyright">© <span id="rodape-ano"></span> Moz Carreiras. Todos os direitos reservados.</p>
+    </div>
+  </div>
+</footer>
 
 <div id="area-modal"></div>
 </div>
@@ -7426,6 +7479,14 @@ function gerarPDF(){
   const nomeArquivo = `correcao-${universidadeAtual.id}-${exameAtual.id}.pdf`;
   doc.save(nomeArquivo);
 }
+
+/* ==========================================================
+   RODAPÉ — ano do copyright, igual ao script do template principal
+   ========================================================== */
+(function(){
+  var elAno = document.getElementById("rodape-ano");
+  if(elAno) elAno.textContent = new Date().getFullYear();
+})();
 
 /* ==========================================================
    INICIALIZAÇÃO
