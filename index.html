@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     /* Paleta */
@@ -124,39 +125,112 @@
   .mc-exam-app ::selection{background:var(--dourado-claro); color:var(--verde-escuro);}
 
 
-  .mc-exam-app /* Cronómetro flutuante do exame — o cabeçalho fixo do
-     simulador foi removido porque o tema do Blogger (theme-corrigido.xml)
-     já apresenta o seu próprio cabeçalho fixo por cima do iframe; assim
-     só existe UM cabeçalho visível (o do blog), evitando duplicação. */
-  #cronometro-topo{
+  .mc-exam-app /* Cabeçalho global */
+  .topo{
+    background:var(--verde);
+    color:#fff;
     position:fixed;
-    top:14px; right:14px;
+    top:0; left:0; right:0;
+    width:100%;
     z-index:9999;
+    box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 10px rgba(0,0,0,0.10);
+    transition:box-shadow 0.25s ease;
     transform:translateZ(0);
     -webkit-transform:translateZ(0);
+    will-change:box-shadow;
+    backface-visibility:hidden;
   }
+  /* IMPORTANTE — como o cabeçalho fica 100% fixo, mesmo dentro do iframe:
+     1) O tema do Blogger (theme-corrigido.xml) trava a altura da página
+        do post de Exames em 100dvh e desliga por completo o scroll do
+        DOCUMENTO PAI (overflow:hidden no html/body dessa página) — assim
+        o blog nunca "empurra" o iframe para cima.
+     2) Nesse mesmo tema, o próprio <iframe class="mc-simulador-frame">
+        passa a usar position:fixed, cobrindo o ecrã inteiro (top/left/
+        right/bottom:0). Isto desacopla totalmente o iframe do fluxo de
+        scroll do documento pai — o iframe fica "colado" ao ecrã real,
+        aconteça o que acontecer na página do blog.
+     3) Dentro deste ficheiro, o cabeçalho (".topo") usa position:fixed
+        relativo ao PRÓPRIO documento do iframe (que tem exactamente a
+        altura do ecrã). Só o conteúdo por baixo dele rola; o cabeçalho,
+        a marca, o cronómetro e o menu hambúrguer nunca se mexem, nem ao
+        rolar para cima, para baixo, nem com o efeito de "elástico" do
+        Safari/iOS (bloqueado com overscroll-behavior:none).
+     Com estas três camadas aplicadas em conjunto, o cabeçalho fica 100%
+     imóvel, sempre visível por inteiro, tanto em mobile como em desktop. */
+  .mc-exam-app .topo.elevado{box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 22px rgba(0,0,0,0.20);}
+  .mc-exam-app .topo-inner{
+    max-width:900px; margin:0 auto; padding:18px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .mc-exam-app .topo .marca{display:flex; align-items:center; gap:12px;}
+  .mc-exam-app .topo .marca .pastilha{
+    width:52px;height:52px;border-radius:12px;flex-shrink:0;
+    background:linear-gradient(150deg,var(--dourado),var(--dourado-claro));
+    display:flex;align-items:center;justify-content:center;
+    color:var(--verde-escuro); font-weight:700; font-family:var(--fonte-app) !important; font-size:26px;
+    transition:transform 0.2s ease;
+  }
+  .mc-exam-app .topo .marca:hover .pastilha{transform:rotate(-4deg) scale(1.04);}
+  .mc-exam-app .topo .marca-texto{line-height:1.2;}
+  .mc-exam-app .topo .marca-texto strong{display:block; font-size:19px; font-weight:600; font-family:var(--fonte-app) !important;}
+  .mc-exam-app .topo .marca-texto span{font-size:13px; opacity:0.8; letter-spacing:0.05em; text-transform:uppercase; font-family:var(--fonte-app) !important;}
+
   .mc-exam-app .cronometro{
     font-family:var(--fonte-mono) !important;
     font-variant-numeric:tabular-nums;
-    background:var(--verde);
-    color:#fff;
+    background:rgba(255,255,255,0.08);
     border:1px solid rgba(255,255,255,0.18);
     padding:8px 14px;
     border-radius:var(--raio-sm);
     font-size:17px;
     font-weight:500;
     display:flex; align-items:center; gap:8px;
-    box-shadow:0 2px 10px rgba(0,0,0,0.14);
     transition:background 0.3s, border-color 0.3s, color 0.3s;
   }
   .mc-exam-app .cronometro.alerta{
-    background:rgba(179,38,30,0.95);
+    background:rgba(179,38,30,0.85);
     border-color:transparent;
     animation:pulsar 1s infinite;
   }
   @keyframes pulsar{0%,100%{opacity:1;}50%{opacity:0.65;}}
 
-  .mc-exam-app .mc-sim-container{max-width:900px; width:100%; margin:0 auto; padding:20px 16px 24px; box-sizing:border-box;}
+  .mc-exam-app .topo-acoes{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+
+  .mc-exam-app .menu-hamburguer-btn{
+    flex-shrink:0; width:42px; height:42px; padding:8px;
+    background:transparent; border:none; border-radius:10px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+    transition:background 0.2s ease;
+  }
+  .mc-exam-app .menu-hamburguer-btn:hover{background:rgba(255,255,255,0.1);}
+  .mc-exam-app .menu-hamburguer-btn:active{transform:scale(0.94);}
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"]{background:rgba(255,255,255,0.1);}
+  .mc-exam-app .menu-hamburguer-btn span{
+    display:block; width:19px; height:2px; border-radius:2px; background:#fff;
+    transition:transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+    transform-origin:center;
+  }
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] span:nth-child(2){opacity:0;}
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  .mc-exam-app .menu-hamburguer-painel{
+    background:#fff; box-shadow:none;
+    display:grid; grid-template-rows:0fr; transition:grid-template-rows 1s cubic-bezier(0.22,1,0.36,1), box-shadow 1s ease, visibility 0s linear 1s;
+    pointer-events:none; overflow:hidden; visibility:hidden;
+  }
+  .mc-exam-app .menu-hamburguer-painel.aberto{grid-template-rows:1fr; pointer-events:auto; box-shadow:0 4px 14px rgba(0,0,0,0.10); visibility:visible; transition:grid-template-rows 1s cubic-bezier(0.22,1,0.36,1), box-shadow 1s ease, visibility 0s linear 0s;}
+  .mc-exam-app .menu-hamburguer-painel .menu-hamburguer-inner{overflow:hidden; min-height:0; display:flex; flex-direction:column; padding:4px 0;}
+  .mc-exam-app .menu-hamburguer-painel a{
+    display:block; padding:11px 20px; margin:0;
+    font-family:var(--fonte-app) !important; font-size:14px; font-weight:500;
+    color:var(--carvao); text-decoration:none; transition:background 0.2s ease;
+  }
+  .mc-exam-app .menu-hamburguer-painel a:hover{background:var(--creme); color:var(--verde-escuro);}
+  .mc-exam-app .menu-hamburguer-painel a.link-ativo{background:var(--sucesso-bg); color:var(--verde); font-weight:700;}
+
+  .mc-exam-app .mc-sim-container{max-width:900px; width:100%; margin:0 auto; padding:20px 16px 24px; box-sizing:border-box; padding-top:calc(20px + var(--mc-topo-altura, 76px));}
 
   .mc-exam-app /* Cabeçalhos de secção reutilizáveis */
   .hero{padding:var(--sp-7) 0 var(--sp-2);}
@@ -584,17 +658,75 @@
   .mc-exam-app .explicacao{margin-top:12px; background:var(--creme); border-radius:10px; padding:14px 16px; font-size:14px; line-height:1.65; color:var(--carvao);}
   .mc-exam-app .explicacao .rotulo-exp{font-weight:700; color:var(--verde); display:block; margin-bottom:4px; font-size:12.5px; text-transform:uppercase; letter-spacing:0.04em;}
 
-  /* NOTA: o simulador deixou de ter uma cópia própria do rodapé. O
-     rodapé oficial do template do Blogger (theme-corrigido.xml) já não é
-     escondido na página do simulador, por isso ele aparece normalmente,
-     sempre 100% igual ao resto do site — sem necessidade de replicá-lo
-     aqui dentro do iframe. */
+  /* ===== RODAPÉ — 100% idêntico ao .site-footer do blog (theme-corrigido.xml) ===== */
+  .mc-exam-app footer.site-footer{background:linear-gradient(180deg,var(--verde) 0%,var(--verde-escuro) 100%);color:rgba(255,255,255,0.6);padding:0;margin-top:44px;position:relative;overflow:hidden}
+  .mc-exam-app footer.site-footer::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--dourado) 0%,var(--dourado-claro) 50%,var(--dourado) 100%);z-index:2}
+  .mc-exam-app .footer-container{max-width:1140px;margin:0 auto;padding:0 24px;box-sizing:border-box}
+  .mc-exam-app .footer-top{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px 28px;padding:20px 0 16px}
+  .mc-exam-app .footer-col{display:flex;align-items:center}
+  .mc-exam-app .footer-col-title{display:none}
+  .mc-exam-app .footer-nav-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:0}
+  .mc-exam-app .footer-nav-list li{display:flex;align-items:center}
+  .mc-exam-app .footer-nav-list li:not(:last-child)::after{content:'';width:1px;height:12px;background:rgba(255,255,255,0.18);margin:0 14px}
+  .mc-exam-app .footer-nav-list li a{display:flex;align-items:center;color:rgba(255,255,255,0.65);text-decoration:none;font-size:12.5px;font-weight:500;letter-spacing:0.2px;white-space:nowrap;transition:color 0.2s ease}
+  .mc-exam-app .footer-nav-list li a:hover{color:var(--dourado)}
+  .mc-exam-app .footer-nav-list li a.footer-link-clicked{color:var(--dourado) !important;text-decoration:none !important}
+  .mc-exam-app .footer-bottom{background:var(--verde-escuro);border-top:1px solid var(--footer-border);padding:12px 24px;margin-top:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 16px;text-align:center;width:100vw;position:relative;left:50%;right:50%;margin-left:-50vw;margin-right:-50vw;max-width:100vw;box-sizing:border-box}
+  .mc-exam-app .footer-copyright{margin:0;font-weight:400;font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:0.4px}
+  @media (min-width:1401px){.mc-exam-app .footer-container{max-width:1260px}}
+  @media (min-width:1800px){.mc-exam-app .footer-container{max-width:1400px}}
+  @media (max-width:900px){.mc-exam-app .footer-top{justify-content:center;text-align:center;padding:18px 0 14px}.mc-exam-app .footer-nav-list{justify-content:center}}
+  @media (max-width:480px){.mc-exam-app footer.site-footer{padding:0}.mc-exam-app .footer-top{flex-direction:column;gap:10px 0;padding:16px 0 12px}.mc-exam-app .footer-nav-list{justify-content:center;row-gap:6px}.mc-exam-app .footer-nav-list li:not(:last-child)::after{margin:0 10px}.mc-exam-app .footer-bottom{padding:10px 20px 14px}.mc-exam-app .footer-copyright{font-size:11px}}
+  @media (max-width:640px){
+    .mc-exam-app footer.site-footer{background:linear-gradient(180deg,var(--verde) 0%,var(--verde-escuro) 100%) !important;color:rgba(255,255,255,0.92) !important;padding:32px 0 0 !important;margin-top:60px;overflow:hidden !important}
+    .mc-exam-app .footer-container{max-width:640px !important;text-align:left !important;padding:0 24px}
+    .mc-exam-app .footer-top{display:flex !important;flex-direction:column !important;align-items:center !important;gap:0 !important;padding-bottom:0 !important}
+    .mc-exam-app .footer-col{width:100%;max-width:420px;margin:0 auto}
+    .mc-exam-app .footer-col-title{display:none !important}
+    .mc-exam-app .footer-nav-list{align-items:center !important;gap:0 !important;margin:0 !important}
+    .mc-exam-app .footer-nav-list li{padding:12px 0 !important}
+    .mc-exam-app .footer-nav-list li a{color:var(--primary-light) !important;font-weight:700 !important;font-size:13px !important;letter-spacing:-0.1px !important;justify-content:center !important}
+    .mc-exam-app .footer-nav-list li a:hover{color:#fff !important;text-decoration:underline}
+    .mc-exam-app .footer-nav-list li a.footer-link-clicked{color:var(--dourado) !important;text-decoration:none !important}
+    .mc-exam-app .footer-bottom{background:var(--verde-escuro) !important;border-top:1px solid var(--footer-border) !important;padding:20px 24px !important;margin:0 !important;justify-content:center !important;width:100vw !important;position:relative !important;left:50% !important;right:50% !important;margin-left:-50vw !important;margin-right:-50vw !important;max-width:100vw !important}
+    .mc-exam-app .footer-copyright{color:rgba(255,255,255,0.5) !important;font-size:11px !important;text-align:center !important;letter-spacing:0.4px !important}
+  }
+  @media (min-width:641px) and (max-width:900px){.mc-exam-app .footer-bottom{flex-direction:column !important;gap:10px !important;text-align:center !important}}
+  .mc-exam-app .footer-copyright{font-weight:400 !important}
+  .mc-exam-app footer.site-footer{color:rgba(255,255,255,0.78)}
+  .mc-exam-app .footer-nav-list li a{color:rgba(255,255,255,0.78)}
 </style>
 </head>
 <body>
 <div class="mc-exam-app" lang="pt">
-<div id="cronometro-topo" class="cronometro hidden" role="timer" aria-live="polite" aria-atomic="true">
-  <span aria-hidden="true">⏱</span><span id="texto-cronometro">00:00</span>
+<div class="topo">
+  <div class="topo-inner">
+    <div class="marca">
+      <div class="pastilha">🎓</div>
+      <div class="marca-texto">
+        <strong>Moz Carreiras</strong>
+        <span>Simulador de Exames</span>
+      </div>
+    </div>
+    <div class="topo-acoes">
+      <div id="cronometro-topo" class="cronometro hidden" role="timer" aria-live="polite" aria-atomic="true">
+        <span aria-hidden="true">⏱</span><span id="texto-cronometro">00:00</span>
+      </div>
+      <button type="button" id="menuHamburguerBtn" class="menu-hamburguer-btn" aria-label="Abrir menu" aria-haspopup="true" aria-expanded="false" aria-controls="menuHamburguerPainel">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <nav id="menuHamburguerPainel" class="menu-hamburguer-painel" aria-label="Menu Moz Carreiras">
+    <div class="menu-hamburguer-inner">
+      <a href="https://mozcarreiras.blogspot.com/search/label/Not%C3%ADcias" target="_top">Notícias</a>
+      <a href="https://mozcarreiras.blogspot.com/p/contactos.html" target="_top">Contactos</a>
+      <a href="https://mozcarreiras.blogspot.com/p/bolsas-de-estudo.html" target="_top">Bolsas de Estudo</a>
+      <a href="https://mozcarreiras.blogspot.com/" target="_top">Vagas de Emprego</a>
+      <a href="https://mozcarreiras.blogspot.com/search/label/Dicas" target="_top">Dicas de Carreira</a>
+      <a href="https://mozcarreiras.blogspot.com/p/exames-de-admissao.html" target="_top" class="link-ativo">Exames de Admissão</a>
+    </div>
+  </nav>
 </div>
 
 <div class="mc-sim-container">
@@ -668,15 +800,39 @@
 
 <div id="area-modal"></div>
 
+<footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-top">
+      <div class="footer-col">
+        <h4 class="footer-col-title">Navegação</h4>
+        <ul class="footer-nav-list">
+          <li><a href="https://mozcarreiras.blogspot.com/p/sobre-nos.html" target="_top">Sobre Nós</a></li>
+          <li><a href="https://mozcarreiras.blogspot.com/p/contactos.html" target="_top">Contactos</a></li>
+          <li><a href="https://mozcarreiras.blogspot.com/p/politica-de-privacidade.html" target="_top">Políticas de Privacidade</a></li>
+          <li><a href="https://mozcarreiras.blogspot.com/p/termos-e-usos.html" target="_top">Termos e Usos</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copyright">© <span id="rodape-app-ano">2026</span> Moz Carreiras. Todos os direitos reservados.</p>
+    </div>
+  </div>
+</footer>
 </div>
 
-<!--
-  O rodapé deixou de ser replicado dentro do iframe: o widget já não
-  esconde o rodapé real do template do Blogger (ver theme-corrigido.xml),
-  por isso o rodapé oficial do site aparece normalmente por baixo do
-  simulador, sempre 100% igual e sempre atualizado — sem duplicação
-  nem risco de desalinhar com o resto do blog.
--->
+<script>
+(function(){
+  var elAno = document.getElementById("rodape-app-ano");
+  if (elAno) elAno.textContent = new Date().getFullYear();
+  var footerNavLinks = document.querySelectorAll(".footer-nav-list li a");
+  footerNavLinks.forEach(function(link){
+    link.addEventListener("click", function(){
+      footerNavLinks.forEach(function(l){ l.classList.remove("footer-link-clicked"); });
+      link.classList.add("footer-link-clicked");
+    });
+  });
+})();
+</script>
 
 <script>
 /* Ajusta automaticamente o tamanho da fonte do título da hero (mobile)
@@ -6990,11 +7146,9 @@ function baixarPDF(){
   const textoOriginal = botao.innerHTML;
   botao.disabled = true;
   botao.innerHTML = `<span class="spinner"></span> A gerar PDF…`;
-  setTimeout(async () => {
+  setTimeout(() => {
     try{
-      await gerarPDF();
-    } catch(erro){
-      alert((erro && erro.message) || "Não foi possível gerar o PDF. Tente novamente.");
+      gerarPDF();
     } finally {
       botao.disabled = false;
       botao.innerHTML = textoOriginal;
@@ -7045,21 +7199,7 @@ function sanitizarTextoPDF(texto){
   return saida;
 }
 
-function carregarJsPDF(){
-  if(window.jspdf) return Promise.resolve();
-  if(window.__mcJsPdfPromise) return window.__mcJsPdfPromise;
-  window.__mcJsPdfPromise = new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("Não foi possível carregar o gerador de PDF. Verifique a sua ligação à internet e tente novamente."));
-    document.head.appendChild(s);
-  });
-  return window.__mcJsPdfPromise;
-}
-
-async function gerarPDF(){
-  await carregarJsPDF();
+function gerarPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
 
@@ -7363,11 +7503,21 @@ async function gerarPDF(){
 renderHome();
 
 /* ==========================================================
-   NOTA: este widget deixou de pedir à página pai para ocultar o
-   cabeçalho do site/blog. O cabeçalho do template do Blogger
-   mantém-se sempre visível; o widget já não envia a mensagem
-   "simuladorMozCarreirasOcultarCabecalhoSite".
+   SUBSTITUIÇÃO DO CABEÇALHO DO SITE PELO CABEÇALHO DO SIMULADOR
+   -----------------------------------------------------------
+   Quando este widget está embebido num iframe (ex: no Blogger),
+   pede à página pai, assim que carrega, para ocultar o cabeçalho
+   do site/blog — para que apareça apenas o cabeçalho do próprio
+   simulador (".topo" acima), evitando dois cabeçalhos sobrepostos
+   na mesma página. É preciso colar o script de instalação lá em
+   baixo (junto ao de auto-ajuste de altura) UMA VEZ no Blogger.
    ========================================================== */
+(function(){
+  if(window.self === window.top) return; // só corre dentro de um iframe
+  window.addEventListener("load", function(){
+    window.parent.postMessage({ tipo: "simuladorMozCarreirasOcultarCabecalhoSite" }, "*");
+  });
+})();
 
 /* ==========================================================
    AUTO-AJUSTE DE ALTURA E SCROLL QUANDO EMBEBIDO NUM IFRAME (BLOGGER)
@@ -7381,14 +7531,22 @@ renderHome();
 
    IMPORTANTE: como o iframe não tem scroll próprio (cresce até
    caber todo o conteúdo), quem tem de rolar de facto é a página
-   pai. O cabeçalho do template do Blogger mantém-se sempre visível
-   — este ficheiro já não pede para o ocultar. Falta colar o código
-   JavaScript abaixo UMA VEZ no Blogger, dentro de uma etiqueta de
-   script (Tema → Editar HTML, perto do fecho do body, ou num
-   gadget "HTML/JavaScript" na mesma página do iframe). Ele encontra
-   o iframe automaticamente, não precisa de nenhum ID:
+   pai. Este ficheiro (hospedado no GitHub) já envia as três
+   mensagens necessárias (altura, scroll e ocultar cabeçalho do
+   site) — falta colar o código JavaScript abaixo UMA VEZ no
+   Blogger, dentro de uma etiqueta de script (Tema → Editar HTML,
+   perto do fecho do body, ou num gadget "HTML/JavaScript" na
+   mesma página do iframe). Ele encontra o iframe automaticamente,
+   não precisa de nenhum ID:
 
      (function(){
+       // AJUSTA AQUI: o(s) seletor(es) CSS do cabeçalho do teu
+       // site/blog (o que aparece por cima do iframe do simulador).
+       // Exemplos comuns em temas do Blogger: "#header", ".header",
+       // "header", "#Header1", ".header-outer". Podes indicar mais
+       // do que um seletor, separado por vírgula.
+       var SELETOR_CABECALHO_SITE = "#header";
+
        window.addEventListener("message", function(event){
          if(!event.data || !event.data.tipo) return;
          // Encontra, entre todos os iframes da página, aquele que
@@ -7406,6 +7564,14 @@ renderHome();
          if(event.data.tipo === "simuladorMozCarreirasScrollTopo"){
            var y = iframe.getBoundingClientRect().top + window.pageYOffset - 16;
            window.scrollTo({ top: y, behavior: "smooth" });
+         }
+         if(event.data.tipo === "simuladorMozCarreirasOcultarCabecalhoSite"){
+           // Substitui o cabeçalho do site pelo cabeçalho do
+           // simulador: oculta o(s) elemento(s) do cabeçalho do
+           // blog enquanto o widget estiver na página.
+           document.querySelectorAll(SELETOR_CABECALHO_SITE).forEach(function(el){
+             el.style.display = "none";
+           });
          }
          if(event.data.tipo === "simuladorMozCarreirasTrancarScroll"){
            // Impede a página do blog de rolar por baixo do widget
