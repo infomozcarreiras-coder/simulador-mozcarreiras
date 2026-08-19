@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     /* Paleta */
@@ -6991,9 +6990,11 @@ function baixarPDF(){
   const textoOriginal = botao.innerHTML;
   botao.disabled = true;
   botao.innerHTML = `<span class="spinner"></span> A gerar PDF…`;
-  setTimeout(() => {
+  setTimeout(async () => {
     try{
-      gerarPDF();
+      await gerarPDF();
+    } catch(erro){
+      alert((erro && erro.message) || "Não foi possível gerar o PDF. Tente novamente.");
     } finally {
       botao.disabled = false;
       botao.innerHTML = textoOriginal;
@@ -7044,7 +7045,21 @@ function sanitizarTextoPDF(texto){
   return saida;
 }
 
-function gerarPDF(){
+function carregarJsPDF(){
+  if(window.jspdf) return Promise.resolve();
+  if(window.__mcJsPdfPromise) return window.__mcJsPdfPromise;
+  window.__mcJsPdfPromise = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("Não foi possível carregar o gerador de PDF. Verifique a sua ligação à internet e tente novamente."));
+    document.head.appendChild(s);
+  });
+  return window.__mcJsPdfPromise;
+}
+
+async function gerarPDF(){
+  await carregarJsPDF();
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
 
