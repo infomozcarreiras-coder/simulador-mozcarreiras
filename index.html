@@ -163,7 +163,7 @@
     max-width:900px; margin:0 auto; padding:18px 20px;
     display:flex; align-items:center; justify-content:space-between;
   }
-  .mc-exam-app .topo .marca{display:flex; align-items:center; gap:12px;}
+  .mc-exam-app .topo .marca{display:flex; align-items:center; gap:12px; min-width:0;}
   .mc-exam-app .topo .marca .pastilha{
     width:52px;height:52px;border-radius:12px;flex-shrink:0;
     background:linear-gradient(150deg,var(--dourado),var(--dourado-claro));
@@ -172,9 +172,15 @@
     transition:transform 0.2s ease;
   }
   .mc-exam-app .topo .marca:hover .pastilha{transform:rotate(-4deg) scale(1.04);}
-  .mc-exam-app .topo .marca-texto{line-height:1.2;}
-  .mc-exam-app .topo .marca-texto strong{display:block; font-size:19px; font-weight:600; font-family:var(--fonte-app) !important;}
-  .mc-exam-app .topo .marca-texto span{font-size:13px; opacity:0.8; letter-spacing:0.05em; text-transform:uppercase; font-family:var(--fonte-app) !important;}
+  .mc-exam-app .topo .marca-texto{line-height:1.2; min-width:0;}
+  .mc-exam-app .topo .marca-texto strong{display:block; font-size:29px; font-weight:800; letter-spacing:0.2px; white-space:nowrap; font-family:'Helvetica Neue', Arial, sans-serif !important;}
+  .mc-exam-app .topo .marca-texto span{font-size:14px; font-weight:400; opacity:0.8; letter-spacing:0.05em; text-transform:uppercase; font-family:var(--fonte-app) !important;}
+  @media (max-width:768px){
+    .mc-exam-app .topo .marca-texto strong{font-size:21px;}
+  }
+  @media (max-width:480px){
+    .mc-exam-app .topo .marca-texto strong{font-size:18px;}
+  }
 
   .mc-exam-app .cronometro{
     font-family:var(--fonte-mono) !important;
@@ -231,6 +237,57 @@
   .mc-exam-app .menu-hamburguer-painel a.link-ativo{background:var(--sucesso-bg); color:var(--verde); font-weight:700;}
 
   .mc-exam-app .mc-sim-container{max-width:900px; width:100%; margin:0 auto; padding:20px 16px 24px; box-sizing:border-box; padding-top:calc(20px + var(--mc-topo-altura, 76px));}
+
+  /* Rodapé — réplica fiel do rodapé do template (theme.xml .site-footer),
+     para que o simulador, embebido em ecrã inteiro no Blogger, mostre o
+     mesmo rodapé (ligações, direitos reservados e faixa dourada) do resto
+     do blog, já que nesse modo o rodapé real do tema fica escondido. */
+  .mc-exam-app .site-footer{
+    background:var(--verde);
+    color:rgba(255,255,255,0.78);
+    margin-top:44px;
+    position:relative;
+    overflow:hidden;
+  }
+  .mc-exam-app .site-footer::before{
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg,#A7873E 0%,var(--dourado) 50%,#A7873E 100%);
+    z-index:2;
+  }
+  .mc-exam-app .footer-container{max-width:900px; margin:0 auto; padding:0 24px; box-sizing:border-box;}
+  .mc-exam-app .footer-top{display:flex; align-items:center; justify-content:center; flex-wrap:wrap; padding:44px 0 0;}
+  .mc-exam-app .footer-col-title{display:none;}
+  .mc-exam-app .footer-nav-list{
+    list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap;
+    align-items:center; justify-content:center; row-gap:32px; column-gap:0;
+  }
+  .mc-exam-app .footer-nav-list li{display:flex; align-items:center;}
+  .mc-exam-app .footer-nav-list li:not(:last-child)::after{content:""; width:1px; height:17px; background:rgba(255,255,255,0.38); margin:0 16px;}
+  .mc-exam-app .footer-nav-list li a{
+    display:flex; align-items:center; color:var(--primary-light); text-decoration:none;
+    font-family:var(--fonte-app) !important; font-size:var(--tp-md); font-weight:700; letter-spacing:-0.1px;
+    white-space:nowrap; transition:color 0.2s ease;
+  }
+  .mc-exam-app .footer-nav-list li a:hover{color:#fff;}
+  .mc-exam-app .footer-nav-list li a svg{display:none;}
+  .mc-exam-app .footer-bottom{
+    background:var(--verde); padding:36px 24px 40px; display:flex; flex-wrap:wrap;
+    align-items:center; justify-content:center; text-align:center; box-sizing:border-box;
+  }
+  .mc-exam-app .footer-copyright{
+    margin:0; font-weight:500; font-size:13px; color:rgba(255,255,255,0.55);
+    letter-spacing:0.3px; font-family:var(--fonte-app) !important;
+  }
+  @media (max-width:480px){
+    .mc-exam-app .footer-top{padding-top:32px;}
+    .mc-exam-app .footer-nav-list{row-gap:24px;}
+    .mc-exam-app .footer-nav-list li a{font-size:var(--tp-base);}
+    .mc-exam-app .footer-nav-list li:not(:last-child)::after{margin:0 12px;}
+    .mc-exam-app .footer-bottom{padding:28px 20px 24px;}
+    .mc-exam-app .footer-copyright{font-size:12px;}
+  }
+
 
   .mc-exam-app /* Cabeçalhos de secção reutilizáveis */
   .hero{padding:var(--sp-7) 0 var(--sp-2);}
@@ -761,8 +818,32 @@
 
 </div>
 
+<footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-top">
+      <div class="footer-col">
+        <h4 class="footer-col-title">Navegação</h4>
+        <ul class="footer-nav-list">
+          <li><a href="https://mozcarreiras.blogspot.com/p/sobre-nos.html" target="_top">Sobre Nós</a></li>
+          <li><a href="https://mozcarreiras.blogspot.com/p/contactos.html" target="_top">Contactos</a></li>
+          <li><a href="https://mozcarreiras.blogspot.com/p/politica-de-privacidade.html" target="_top">Políticas de Privacidade</a></li>
+          <li><a href="https://mozcarreiras.blogspot.com/p/termos-e-usos.html" target="_top">Termos e Usos</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copyright">© <span id="mc-footer-ano"></span> Moz Carreiras. Todos os direitos reservados.</p>
+    </div>
+  </div>
+</footer>
+
 <div id="area-modal"></div>
 </div>
+
+<script>
+  var mcRodapeAnoEl = document.getElementById("mc-footer-ano");
+  if (mcRodapeAnoEl) mcRodapeAnoEl.textContent = new Date().getFullYear();
+</script>
 
 <script>
 /* Ajusta automaticamente o tamanho da fonte do título da hero (mobile)
