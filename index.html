@@ -7503,11 +7503,21 @@ function gerarPDF(){
 renderHome();
 
 /* ==========================================================
-   O simulador já não pede à página pai para ocultar o cabeçalho
-   do site — agora herda sempre o cabeçalho e o rodapé do template
-   onde está embebido (ex: Blogger), aparecendo apenas o conteúdo
-   do simulador entre eles, com scroll normal da página.
+   SUBSTITUIÇÃO DO CABEÇALHO DO SITE PELO CABEÇALHO DO SIMULADOR
+   -----------------------------------------------------------
+   Quando este widget está embebido num iframe (ex: no Blogger),
+   pede à página pai, assim que carrega, para ocultar o cabeçalho
+   do site/blog — para que apareça apenas o cabeçalho do próprio
+   simulador (".topo" acima), evitando dois cabeçalhos sobrepostos
+   na mesma página. É preciso colar o script de instalação lá em
+   baixo (junto ao de auto-ajuste de altura) UMA VEZ no Blogger.
    ========================================================== */
+(function(){
+  if(window.self === window.top) return; // só corre dentro de um iframe
+  window.addEventListener("load", function(){
+    window.parent.postMessage({ tipo: "simuladorMozCarreirasOcultarCabecalhoSite" }, "*");
+  });
+})();
 
 /* ==========================================================
    AUTO-AJUSTE DE ALTURA E SCROLL QUANDO EMBEBIDO NUM IFRAME (BLOGGER)
