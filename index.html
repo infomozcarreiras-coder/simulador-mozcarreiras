@@ -68,6 +68,7 @@
     -ms-text-size-adjust:100%;
     text-size-adjust:100%;
     scroll-behavior:smooth;
+    overscroll-behavior-y:none;
   }
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto;}
@@ -125,44 +126,112 @@
   .mc-exam-app ::selection{background:var(--dourado-claro); color:var(--verde-escuro);}
 
 
-  .mc-exam-app /* Cronómetro do exame — quando o simulador está embebido
-     num iframe (ex: no Blogger), o cronómetro é enviado por postMessage
-     para a página pai e mostrado dentro do cabeçalho real do tema, no
-     mesmo local onde estava antes no cabeçalho próprio do simulador
-     (ver ".header-cronometro" no tema). O badge local abaixo só é
-     usado como alternativa quando o simulador é aberto fora de um
-     iframe (ex: directamente pelo link do GitHub Pages). */
-  .cronometro{
-    font-family:var(--fonte-mono) !important;
-    font-variant-numeric:tabular-nums;
+  .mc-exam-app /* Cabeçalho global */
+  .topo{
     background:var(--verde);
     color:#fff;
+    position:fixed;
+    top:0; left:0; right:0;
+    width:100%;
+    z-index:9999;
+    box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 10px rgba(0,0,0,0.10);
+    transition:box-shadow 0.25s ease;
+    transform:translateZ(0);
+    -webkit-transform:translateZ(0);
+    will-change:box-shadow;
+    backface-visibility:hidden;
+  }
+  /* IMPORTANTE — como o cabeçalho fica 100% fixo, mesmo dentro do iframe:
+     1) O tema do Blogger (theme-corrigido.xml) trava a altura da página
+        do post de Exames em 100dvh e desliga por completo o scroll do
+        DOCUMENTO PAI (overflow:hidden no html/body dessa página) — assim
+        o blog nunca "empurra" o iframe para cima.
+     2) Nesse mesmo tema, o próprio <iframe class="mc-simulador-frame">
+        passa a usar position:fixed, cobrindo o ecrã inteiro (top/left/
+        right/bottom:0). Isto desacopla totalmente o iframe do fluxo de
+        scroll do documento pai — o iframe fica "colado" ao ecrã real,
+        aconteça o que acontecer na página do blog.
+     3) Dentro deste ficheiro, o cabeçalho (".topo") usa position:fixed
+        relativo ao PRÓPRIO documento do iframe (que tem exactamente a
+        altura do ecrã). Só o conteúdo por baixo dele rola; o cabeçalho,
+        a marca, o cronómetro e o menu hambúrguer nunca se mexem, nem ao
+        rolar para cima, para baixo, nem com o efeito de "elástico" do
+        Safari/iOS (bloqueado com overscroll-behavior:none).
+     Com estas três camadas aplicadas em conjunto, o cabeçalho fica 100%
+     imóvel, sempre visível por inteiro, tanto em mobile como em desktop. */
+  .mc-exam-app .topo.elevado{box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 22px rgba(0,0,0,0.20);}
+  .mc-exam-app .topo-inner{
+    max-width:900px; margin:0 auto; padding:18px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .mc-exam-app .topo .marca{display:flex; align-items:center; gap:12px;}
+  .mc-exam-app .topo .marca .pastilha{
+    width:52px;height:52px;border-radius:12px;flex-shrink:0;
+    background:linear-gradient(150deg,var(--dourado),var(--dourado-claro));
+    display:flex;align-items:center;justify-content:center;
+    color:var(--verde-escuro); font-weight:700; font-family:var(--fonte-app) !important; font-size:26px;
+    transition:transform 0.2s ease;
+  }
+  .mc-exam-app .topo .marca:hover .pastilha{transform:rotate(-4deg) scale(1.04);}
+  .mc-exam-app .topo .marca-texto{line-height:1.2;}
+  .mc-exam-app .topo .marca-texto strong{display:block; font-size:19px; font-weight:800; font-family:'Inter',system-ui,-apple-system,sans-serif !important;}
+  .mc-exam-app .topo .marca-texto span{font-size:12px; opacity:0.8; letter-spacing:0.05em; font-family:'Inter',system-ui,-apple-system,sans-serif !important;}
+
+  .mc-exam-app .cronometro{
+    font-family:var(--fonte-mono) !important;
+    font-variant-numeric:tabular-nums;
+    background:rgba(255,255,255,0.08);
     border:1px solid rgba(255,255,255,0.18);
     padding:8px 14px;
     border-radius:var(--raio-sm);
-    font-size:15px;
+    font-size:17px;
     font-weight:500;
     display:flex; align-items:center; gap:8px;
-    box-shadow:var(--sombra-md);
-    position:fixed;
-    top:14px; right:14px;
-    z-index:500;
     transition:background 0.3s, border-color 0.3s, color 0.3s;
   }
   .mc-exam-app .cronometro.alerta{
-    background:rgba(179,38,30,0.9);
+    background:rgba(179,38,30,0.85);
     border-color:transparent;
     animation:pulsar 1s infinite;
   }
   @keyframes pulsar{0%,100%{opacity:1;}50%{opacity:0.65;}}
-  @media(max-width:480px){
-    .mc-exam-app .cronometro{top:10px; right:10px; padding:6px 11px; font-size:13px;}
-  }
-  /* Embebido num iframe: o cronómetro real vive no cabeçalho do tema,
-     por isso o badge flutuante local fica sempre desligado. */
-  .mc-exam-app.mc-embutido #cronometro-topo{display:none !important;}
 
-  .mc-exam-app .mc-sim-container{max-width:900px; width:100%; margin:0 auto; padding:20px 16px 24px; box-sizing:border-box;}
+  .mc-exam-app .topo-acoes{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+
+  .mc-exam-app .menu-hamburguer-btn{
+    flex-shrink:0; width:42px; height:42px; padding:8px;
+    background:transparent; border:none; border-radius:10px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+    transition:background 0.2s ease;
+  }
+  .mc-exam-app .menu-hamburguer-btn:hover{background:rgba(255,255,255,0.1);}
+  .mc-exam-app .menu-hamburguer-btn:active{transform:scale(0.94);}
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"]{background:rgba(255,255,255,0.1);}
+  .mc-exam-app .menu-hamburguer-btn span{
+    display:block; width:19px; height:2px; border-radius:2px; background:#fff;
+    transition:transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+    transform-origin:center;
+  }
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] span:nth-child(2){opacity:0;}
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  .mc-exam-app .menu-hamburguer-painel{
+    background:#fff; box-shadow:none;
+    display:grid; grid-template-rows:0fr; transition:grid-template-rows 1s cubic-bezier(0.22,1,0.36,1), box-shadow 1s ease, visibility 0s linear 1s;
+    pointer-events:none; overflow:hidden; visibility:hidden;
+  }
+  .mc-exam-app .menu-hamburguer-painel.aberto{grid-template-rows:1fr; pointer-events:auto; box-shadow:0 4px 14px rgba(0,0,0,0.10); visibility:visible; transition:grid-template-rows 1s cubic-bezier(0.22,1,0.36,1), box-shadow 1s ease, visibility 0s linear 0s;}
+  .mc-exam-app .menu-hamburguer-painel .menu-hamburguer-inner{overflow:hidden; min-height:0; display:flex; flex-direction:column; padding:4px 0;}
+  .mc-exam-app .menu-hamburguer-painel a{
+    display:block; padding:8px 20px; margin:0;
+    font-family:var(--fonte-app) !important; font-size:12px; font-weight:450; letter-spacing:-0.1px;
+    color:var(--carvao); text-decoration:none; transition:background 0.2s ease;
+  }
+  .mc-exam-app .menu-hamburguer-painel a:hover{background:var(--creme); color:var(--verde-escuro);}
+  .mc-exam-app .menu-hamburguer-painel a.link-ativo{background:var(--sucesso-bg); color:var(--verde); font-weight:700;}
+
+  .mc-exam-app .mc-sim-container{max-width:900px; width:100%; margin:0 auto; padding:20px 16px 24px; box-sizing:border-box; padding-top:calc(20px + var(--mc-topo-altura, 76px));}
 
   .mc-exam-app /* Cabeçalhos de secção reutilizáveis */
   .hero{padding:var(--sp-7) 0 var(--sp-2);}
@@ -660,14 +729,34 @@
 </head>
 <body>
 <div class="mc-exam-app" lang="pt">
-<script>if(window.self!==window.top){document.currentScript.parentElement.classList.add("mc-embutido");}</script>
-<!-- O simulador já não tem cabeçalho próprio: usa sempre, automaticamente,
-     o cabeçalho do tema/blog onde está embebido. O cronómetro do exame
-     (antes dentro do cabeçalho) é enviado por postMessage para a página
-     pai e mostrado dentro do cabeçalho real do tema — ver ".mc-embutido"
-     acima e o script "CRONÓMETRO NO CABEÇALHO DO TEMA" mais abaixo. -->
-<div id="cronometro-topo" class="cronometro hidden" role="timer" aria-live="polite" aria-atomic="true">
-  <span aria-hidden="true">⏱</span><span id="texto-cronometro">00:00</span>
+<div class="topo">
+  <div class="topo-inner">
+    <div class="marca">
+      <div class="pastilha">🎓</div>
+      <div class="marca-texto">
+        <strong>Moz Carreiras</strong>
+        <span>Simulador de Exames</span>
+      </div>
+    </div>
+    <div class="topo-acoes">
+      <div id="cronometro-topo" class="cronometro hidden" role="timer" aria-live="polite" aria-atomic="true">
+        <span aria-hidden="true">⏱</span><span id="texto-cronometro">00:00</span>
+      </div>
+      <button type="button" id="menuHamburguerBtn" class="menu-hamburguer-btn" aria-label="Abrir menu" aria-haspopup="true" aria-expanded="false" aria-controls="menuHamburguerPainel">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <nav id="menuHamburguerPainel" class="menu-hamburguer-painel" aria-label="Menu Moz Carreiras">
+    <div class="menu-hamburguer-inner">
+      <a href="https://mozcarreiras.blogspot.com/search/label/Not%C3%ADcias" target="_top">Notícias</a>
+      <a href="https://mozcarreiras.blogspot.com/p/contactos.html" target="_top">Contactos</a>
+      <a href="https://mozcarreiras.blogspot.com/p/bolsas-de-estudo.html" target="_top">Bolsas de Estudo</a>
+      <a href="https://mozcarreiras.blogspot.com/" target="_top">Vagas de Emprego</a>
+      <a href="https://mozcarreiras.blogspot.com/search/label/Dicas" target="_top">Dicas de Carreira</a>
+      <a href="https://mozcarreiras.blogspot.com/p/exames-de-admissao.html" target="_top" class="link-ativo">Exames de Admissão</a>
+    </div>
+  </nav>
 </div>
 
 <div class="mc-sim-container">
@@ -6432,13 +6521,7 @@ function mostrarTela(id){
   ["tela-inicio","tela-universidade","tela-disciplina","tela-detalhes","tela-exame","tela-resultados"].forEach(t=>{
     document.getElementById(t).classList.toggle("hidden", t !== id);
   });
-  const emExame = id === "tela-exame";
-  document.getElementById("cronometro-topo").classList.toggle("hidden", !emExame);
-  // Avisa a página pai (quando embebido num iframe) para mostrar/esconder
-  // o cronómetro dentro do cabeçalho real do tema.
-  if(window.self !== window.top){
-    window.parent.postMessage({ tipo: "simuladorMozCarreirasCronometro", visivel: emExame }, "*");
-  }
+  document.getElementById("cronometro-topo").classList.toggle("hidden", id !== "tela-exame");
   // Reactiva a animação de entrada da tela, mesmo que já tenha
   // aparecido antes (força um reflow entre remover e re-adicionar a classe).
   const telaActiva = document.getElementById(id);
@@ -6456,10 +6539,87 @@ function mostrarTela(id){
 /* ==========================================================
    MICROINTERAÇÕES DA INTERFACE
    -----------------------------------------------------------
-   Ondulação (ripple) nos botões — o pequeno detalhe que dá
-   sensação de acabamento a uma interface profissional.
+   Sombra do cabeçalho ao rolar + ondulação (ripple) nos botões,
+   os dois pequenos detalhes que dão sensação de acabamento a
+   uma interface profissional.
    ========================================================== */
 (function(){
+  const topo = document.querySelector(".mc-exam-app .topo");
+  function actualizarElevacaoTopo(){
+    if(!topo) return;
+    topo.classList.toggle("elevado", (window.scrollY || document.documentElement.scrollTop) > 4);
+  }
+  window.addEventListener("scroll", actualizarElevacaoTopo, {passive:true});
+  actualizarElevacaoTopo();
+
+  // O cabeçalho está sempre fixo (position:fixed); esta função mede a
+  // altura real dele (que pode variar consoante o ecrã, ex: se o texto
+  // quebrar linha) e ajusta o espaçamento do conteúdo para nunca ficar
+  // escondido nem sobreposto por baixo dele.
+  function ajustarEspacoTopoFixo(){
+    if(!topo) return;
+    const app = document.querySelector(".mc-exam-app");
+    if(!app) return;
+    app.style.setProperty("--mc-topo-altura", topo.offsetHeight + "px");
+  }
+  window.addEventListener("resize", ajustarEspacoTopoFixo);
+  ajustarEspacoTopoFixo();
+  if(window.ResizeObserver && topo){
+    let pendenteRAF1 = null;
+    new ResizeObserver(() => {
+      if(pendenteRAF1) return;
+      pendenteRAF1 = requestAnimationFrame(() => { pendenteRAF1 = null; ajustarEspacoTopoFixo(); });
+    }).observe(topo);
+  }
+
+  // Menu hambúrguer do cabeçalho: abre/fecha o painel de navegação,
+  // fecha ao clicar fora, ao premir Escape, ao escolher um link, ou ao
+  // rolar a página. O scroll NUNCA fica bloqueado: o utilizador pode
+  // sempre rolar a página (para cima ou para baixo) mesmo com o menu
+  // aberto. Para o conteúdo nunca ficar escondido por baixo do painel
+  // aberto, a altura do cabeçalho (".topo", que inclui o painel quando
+  // expandido) é medida em tempo real e o espaçamento do conteúdo
+  // (".mc-sim-container") ajusta-se automaticamente a essa altura — ver
+  // "ajustarEspacoTopoFixo" acima. Assim que a rolagem começa, o painel
+  // fecha-se sozinho (recolhendo para cima, para dentro do cabeçalho),
+  // afastando-se do caminho do conteúdo.
+  const menuBtn = document.getElementById("menuHamburguerBtn");
+  const menuPainel = document.getElementById("menuHamburguerPainel");
+  function fecharMenuHamburguer(){
+    if(!menuBtn || !menuPainel) return;
+    menuBtn.setAttribute("aria-expanded", "false");
+    menuPainel.classList.remove("aberto");
+  }
+  function alternarMenuHamburguer(){
+    if(!menuBtn || !menuPainel) return;
+    const aberto = menuBtn.getAttribute("aria-expanded") === "true";
+    if(aberto){ fecharMenuHamburguer(); }
+    else{
+      menuBtn.setAttribute("aria-expanded", "true");
+      menuPainel.classList.add("aberto");
+    }
+  }
+  if(menuBtn){
+    menuBtn.addEventListener("click", function(evento){
+      evento.stopPropagation();
+      alternarMenuHamburguer();
+    });
+  }
+  document.addEventListener("click", function(evento){
+    if(!menuPainel || !menuPainel.classList.contains("aberto")) return;
+    if(evento.target.closest("#menuHamburguerPainel, #menuHamburguerBtn")) return;
+    fecharMenuHamburguer();
+  });
+  document.addEventListener("keydown", function(evento){
+    if(evento.key === "Escape") fecharMenuHamburguer();
+  });
+  // Fecha o menu automaticamente assim que a página começa a rolar
+  // (em qualquer direção), para o painel "se afastar para cima" e
+  // nunca haver conteúdo a passar por baixo dele.
+  window.addEventListener("scroll", function(){
+    if(menuPainel && menuPainel.classList.contains("aberto")) fecharMenuHamburguer();
+  }, {passive:true});
+
   document.addEventListener("click", function(evento){
     const btn = evento.target.closest(".mc-exam-app .btn");
     if(!btn || btn.disabled) return;
@@ -6771,15 +6931,8 @@ function formatarTempo(seg){
 function atualizarCronometroVisual(){
   const el = document.getElementById("texto-cronometro");
   const wrap = document.getElementById("cronometro-topo");
-  const texto = formatarTempo(tempoRestanteSeg);
-  const alerta = tempoRestanteSeg <= 60 && tempoRestanteSeg > 0;
-  el.textContent = texto;
-  wrap.classList.toggle("alerta", alerta);
-  // Mantém o cronómetro no cabeçalho real do tema sincronizado, quando
-  // o simulador está embebido num iframe.
-  if(window.self !== window.top){
-    window.parent.postMessage({ tipo: "simuladorMozCarreirasCronometro", visivel: true, texto: texto, alerta: alerta }, "*");
-  }
+  el.textContent = formatarTempo(tempoRestanteSeg);
+  wrap.classList.toggle("alerta", tempoRestanteSeg <= 60 && tempoRestanteSeg > 0);
 }
 
 function renderTelaExame(){
@@ -7393,6 +7546,23 @@ function gerarPDF(){
 renderHome();
 
 /* ==========================================================
+   SUBSTITUIÇÃO DO CABEÇALHO DO SITE PELO CABEÇALHO DO SIMULADOR
+   -----------------------------------------------------------
+   Quando este widget está embebido num iframe (ex: no Blogger),
+   pede à página pai, assim que carrega, para ocultar o cabeçalho
+   do site/blog — para que apareça apenas o cabeçalho do próprio
+   simulador (".topo" acima), evitando dois cabeçalhos sobrepostos
+   na mesma página. É preciso colar o script de instalação lá em
+   baixo (junto ao de auto-ajuste de altura) UMA VEZ no Blogger.
+   ========================================================== */
+(function(){
+  if(window.self === window.top) return; // só corre dentro de um iframe
+  window.addEventListener("load", function(){
+    window.parent.postMessage({ tipo: "simuladorMozCarreirasOcultarCabecalhoSite" }, "*");
+  });
+})();
+
+/* ==========================================================
    AUTO-AJUSTE DE ALTURA E SCROLL QUANDO EMBEBIDO NUM IFRAME (BLOGGER)
    -----------------------------------------------------------
    Envia a altura real do conteúdo à janela pai (o post/página do
@@ -7404,16 +7574,22 @@ renderHome();
 
    IMPORTANTE: como o iframe não tem scroll próprio (cresce até
    caber todo o conteúdo), quem tem de rolar de facto é a página
-   pai. Este ficheiro (hospedado no GitHub) já envia as mensagens
-   necessárias (altura e scroll) — falta colar o código JavaScript
-   abaixo UMA VEZ no Blogger, dentro de uma etiqueta de script
-   (Tema → Editar HTML, perto do fecho do body, ou num gadget
-   "HTML/JavaScript" na mesma página do iframe). Ele encontra o
-   iframe automaticamente, não precisa de nenhum ID. O simulador
-   não tem cabeçalho próprio: usa sempre o cabeçalho normal do
-   tema/blog, por cima do iframe, sem precisar de nada extra:
+   pai. Este ficheiro (hospedado no GitHub) já envia as três
+   mensagens necessárias (altura, scroll e ocultar cabeçalho do
+   site) — falta colar o código JavaScript abaixo UMA VEZ no
+   Blogger, dentro de uma etiqueta de script (Tema → Editar HTML,
+   perto do fecho do body, ou num gadget "HTML/JavaScript" na
+   mesma página do iframe). Ele encontra o iframe automaticamente,
+   não precisa de nenhum ID:
 
      (function(){
+       // AJUSTA AQUI: o(s) seletor(es) CSS do cabeçalho do teu
+       // site/blog (o que aparece por cima do iframe do simulador).
+       // Exemplos comuns em temas do Blogger: "#header", ".header",
+       // "header", "#Header1", ".header-outer". Podes indicar mais
+       // do que um seletor, separado por vírgula.
+       var SELETOR_CABECALHO_SITE = "#header";
+
        window.addEventListener("message", function(event){
          if(!event.data || !event.data.tipo) return;
          // Encontra, entre todos os iframes da página, aquele que
@@ -7432,6 +7608,25 @@ renderHome();
            var y = iframe.getBoundingClientRect().top + window.pageYOffset - 16;
            window.scrollTo({ top: y, behavior: "smooth" });
          }
+         if(event.data.tipo === "simuladorMozCarreirasOcultarCabecalhoSite"){
+           // Substitui o cabeçalho do site pelo cabeçalho do
+           // simulador: oculta o(s) elemento(s) do cabeçalho do
+           // blog enquanto o widget estiver na página.
+           document.querySelectorAll(SELETOR_CABECALHO_SITE).forEach(function(el){
+             el.style.display = "none";
+           });
+         }
+         if(event.data.tipo === "simuladorMozCarreirasTrancarScroll"){
+           // Impede a página do blog de rolar por baixo do widget
+           // enquanto o menu hambúrguer do simulador está aberto,
+           // para o menu não "fugir" para cima ao deslizar o dedo.
+           document.documentElement.style.overflow = "hidden";
+           document.body.style.overflow = "hidden";
+         }
+         if(event.data.tipo === "simuladorMozCarreirasDestrancarScroll"){
+           document.documentElement.style.overflow = "";
+           document.body.style.overflow = "";
+         }
        });
      })();
 
@@ -7439,6 +7634,28 @@ renderHome();
    um iframe a apontar para a página publicada no GitHub Pages, com
    largura 100%, sem borda, "scrolling" desligado e carregamento
    "lazy" — sem scrolling próprio, para não haver scroll duplo.
+
+   ---------------------------------------------------------------
+   PARA O CABEÇALHO (".topo") FICAR REALMENTE FIXO NO TOPO DO ECRÃ:
+   ---------------------------------------------------------------
+   Acrescenta esta regra no CSS do tema (dentro do <b:skin>), para
+   que nesta página específica o iframe deixe de "crescer" e passe
+   a ter a altura do ecrã, com scroll próprio por dentro:
+
+     body.page-exames .pagina-simples-corpo iframe.mc-simulador-frame{
+       height:100dvh !important;
+     }
+
+   E, no script de integração já existente no tema (a função
+   ligarIframeSimulador), tira a linha que desliga o scroll do
+   iframe, para o scroll interno funcionar:
+
+     iframe.setAttribute("scrolling", "no");   -> remover esta linha
+     iframe.style.overflow = "hidden";          -> remover esta linha
+
+   Sem esta pequena alteração no tema, o cabeçalho continua a usar
+   "sticky" mas sem nenhuma área com scroll a que se agarrar dentro
+   do iframe — e por isso não fica preso ao topo real do ecrã.
    ========================================================== */
 (function(){
   if(window.self === window.top) return; // só corre dentro de um iframe
