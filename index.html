@@ -153,6 +153,18 @@
   .mc-exam-app .topo.elevado{
     box-shadow:none;
   }
+  .mc-exam-app .topo.fixo-exame{
+    position:fixed;
+    top:0; left:0; right:0;
+    background:var(--creme);
+    z-index:9998;
+  }
+  .mc-exam-app .topo.fixo-exame.elevado{
+    box-shadow:var(--sombra-sm);
+  }
+  .mc-exam-app .topo.fixo-exame ~ .mc-sim-container{
+    padding-top:var(--mc-topo-altura, 140px);
+  }
   .mc-exam-app .topo-inner{
     max-width:900px; margin:0 auto; padding:calc(14px + env(safe-area-inset-top, 0px)) 16px 6px;
     padding-left:calc(16px + env(safe-area-inset-left, 0px));
@@ -161,7 +173,7 @@
   }
   .mc-exam-app .topo .marca{display:flex; align-items:center; justify-content:flex-start; gap:10px; width:100%;}
   .mc-exam-app .topo .marca-logo{
-    height:110px; width:auto; max-width:100%; display:block; flex-shrink:0;
+    height:130px; width:auto; max-width:100%; display:block; flex-shrink:0;
     margin-left:0;
     image-rendering:-webkit-optimize-contrast; image-rendering:crisp-edges;
     transition:transform var(--dur-m) var(--ease-suave);
@@ -173,9 +185,9 @@
   .mc-exam-app .cronometro{
     font-family:var(--fonte-mono) !important;
     font-variant-numeric:tabular-nums;
-    background:var(--primary-light);
-    border:1px solid var(--linha);
-    color:var(--verde-escuro);
+    background:var(--verde);
+    border:1px solid var(--verde-escuro);
+    color:var(--dourado);
     padding:6px 12px;
     border-radius:var(--raio-full);
     font-size:14.5px;
@@ -183,7 +195,7 @@
     display:flex; align-items:center; gap:7px;
     transition:background 0.3s, border-color 0.3s, color 0.3s;
     position:fixed;
-    top:calc(10px + env(safe-area-inset-top, 0px));
+    top:calc(58px + env(safe-area-inset-top, 0px));
     right:calc(12px + env(safe-area-inset-right, 0px));
     z-index:9999;
     box-shadow:var(--sombra-sm);
@@ -324,12 +336,6 @@
     font-size:14.5px; font-weight:700; color:var(--verde-escuro); line-height:1.28;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
   }
-  .mc-exam-app .cartao-universidade .meta{
-    display:flex; gap:10px; margin-top:5px; font-size:11.5px; color:var(--cinza);
-    white-space:nowrap; overflow:hidden;
-  }
-  .mc-exam-app .cartao-universidade .meta span{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .mc-exam-app .cartao-universidade .seta{color:var(--dourado-escuro); font-size:19px; flex-shrink:0;}
 
   .mc-exam-app .estado-vazio{
     text-align:center; padding:30px 20px; color:var(--cinza);
@@ -1066,6 +1072,157 @@
   .mc-exam-app .cartao-questao{ padding:26px 24px; }
   .mc-exam-app .grade-info .item{ padding:18px 20px; }
 
+  /* ===================================================================
+     CAMADA FINAL — APARÊNCIA DE WEB APP PROFISSIONAL
+     Cabeçalho compacto e fixo, profundidade suave nos cartões, rodapé
+     estilo "produto", melhor hierarquia tipográfica e feedback tátil.
+     Esta camada sobrepõe-se às regras anteriores (cascata CSS).
+     =================================================================== */
+
+  .mc-exam-app{
+    --sombra-sm: 0 1px 3px rgba(3,15,12,0.06), 0 1px 2px rgba(3,15,12,0.04);
+    --sombra-md: 0 6px 16px rgba(3,15,12,0.09), 0 2px 5px rgba(3,15,12,0.05);
+    --sombra-lg: 0 16px 34px rgba(3,15,12,0.14), 0 4px 10px rgba(3,15,12,0.06);
+    --raio-sm: 8px; --raio-md: 12px; --raio-lg: 16px;
+  }
+
+  /* --- Barra superior tipo app: compacta, fixa, com elevação ao rolar --- */
+  .mc-exam-app .topo{
+    position:sticky; top:0; z-index:60;
+    background:rgba(255,255,255,0.94);
+    -webkit-backdrop-filter:saturate(180%) blur(10px);
+    backdrop-filter:saturate(180%) blur(10px);
+    border-bottom:1px solid var(--linha);
+    box-shadow:none;
+    transition:box-shadow .2s ease, background-color .2s ease;
+  }
+  .mc-exam-app .topo.elevado{ box-shadow:var(--sombra-sm); }
+  .mc-exam-app .topo-inner{
+    padding-top:12px; padding-bottom:12px;
+    justify-content:flex-start;
+  }
+  .mc-exam-app .topo .marca-logo{ height:84px; }
+
+  /* --- Fundo do "palco" para dar profundidade ao conteúdo em cartões --- */
+  .mc-exam-app .mc-sim-container{
+    padding-left:16px; padding-right:16px;
+  }
+  @media (min-width:760px){
+    .mc-exam-app .mc-sim-container{ padding-left:24px; padding-right:24px; }
+  }
+
+  /* --- Hero: passa de banner de marketing para painel de boas-vindas de app --- */
+  .mc-exam-app .hero{ padding-top:22px; padding-bottom:10px; text-align:center; }
+  .mc-exam-app .hero-aviso{
+    border-radius:var(--raio-lg);
+    border:1px solid var(--linha);
+    box-shadow:var(--sombra-sm);
+    background:linear-gradient(180deg,#ffffff 0%, var(--creme) 100%);
+  }
+  .mc-exam-app .hero .eyebrow{
+    display:inline-flex; align-items:center; gap:7px;
+    background:rgba(11,74,50,0.07);
+    border:1px solid rgba(11,74,50,0.14);
+    border-radius:var(--raio-full);
+    padding:5px 12px 5px 10px;
+    color:var(--verde-escuro);
+  }
+  .mc-exam-app .hero .eyebrow::before{
+    background:var(--dourado-escuro); width:6px; height:6px; border-radius:50%;
+  }
+
+  /* --- Cartões: elevação suave sempre presente, mais acentuada ao pairar --- */
+  .mc-exam-app .cartao-disciplina,
+  .mc-exam-app .cartao-universidade,
+  .mc-exam-app .cartao-exame{
+    background:#fff;
+    border-radius:var(--raio-lg);
+    box-shadow:var(--sombra-sm);
+    border-color:var(--linha);
+    transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  }
+  .mc-exam-app .cartao-disciplina:hover,
+  .mc-exam-app .cartao-universidade:hover,
+  .mc-exam-app .cartao-exame:hover{
+    box-shadow:var(--sombra-md);
+    transform:translateY(-2px);
+    border-color:var(--verde-escuro);
+  }
+  .mc-exam-app .cartao-disciplina:active,
+  .mc-exam-app .cartao-universidade:active,
+  .mc-exam-app .cartao-exame:active{
+    transform:translateY(0) scale(0.995);
+    box-shadow:var(--sombra-sm);
+  }
+  .mc-exam-app .cartao-questao,
+  .mc-exam-app .painel-detalhes,
+  .mc-exam-app .estatisticas-rapidas .item,
+  .mc-exam-app .resumo-resultado,
+  .mc-exam-app .modal{
+    border-radius:var(--raio-lg);
+    box-shadow:var(--sombra-md);
+    border-color:var(--linha);
+  }
+
+  /* --- Ícones/emblemas com um toque de profundidade, sem exagero --- */
+  .mc-exam-app .cartao-disciplina .icone,
+  .mc-exam-app .cartao-exame .icone,
+  .mc-exam-app .cartao-universidade .emblema{
+    border-radius:var(--raio-md);
+    box-shadow:0 3px 8px rgba(3,15,12,0.16);
+  }
+
+  /* --- Botões: leve profundidade e resposta táctil, sem gradiente pesado --- */
+  .mc-exam-app .btn{
+    border-radius:var(--raio-md);
+    box-shadow:var(--sombra-sm);
+    transition:box-shadow .15s ease, transform .1s ease, background-color .15s ease;
+  }
+  .mc-exam-app .btn:hover{ box-shadow:var(--sombra-md); transform:translateY(-1px); }
+  .mc-exam-app .btn:active{ transform:translateY(0) scale(0.99); box-shadow:none; }
+  .mc-exam-app .btn:focus-visible{ outline:2px solid var(--dourado-escuro); outline-offset:2px; }
+
+  /* --- Barra de progresso sticky com leve sombra ao colar no topo --- */
+  .mc-exam-app .barra-progresso-wrap{
+    box-shadow:0 2px 8px rgba(3,15,12,0.05);
+    border-bottom:1px solid var(--linha);
+  }
+
+  /* --- Navegador de questões: estado activo mais nítido --- */
+  .mc-exam-app .nav-q{ border-radius:var(--raio-sm); }
+  .mc-exam-app .nav-q.atual{
+    box-shadow:0 3px 8px rgba(3,15,12,0.22);
+  }
+
+  /* --- Rodapé estilo "produto": barra sólida com marca, não linha discreta --- */
+  .mc-exam-app .mc-rodape-app{
+    margin-top:40px;
+    padding:22px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+    background:var(--verde-escuro);
+    color:rgba(255,255,255,0.75);
+    border-top:none;
+    font-weight:500;
+  }
+
+  /* --- Estado vazio com aparência mais intencional --- */
+  .mc-exam-app .estado-vazio{
+    background:#fff;
+    border:1px dashed var(--linha);
+    border-radius:var(--raio-lg);
+    box-shadow:var(--sombra-sm);
+  }
+
+  /* --- Selecção de opções: contorno mais definido ao focar/seleccionar --- */
+  .mc-exam-app .opcao{ border-radius:var(--raio-md); }
+  .mc-exam-app .opcao.selecionada{
+    box-shadow:0 0 0 1px var(--verde-escuro) inset;
+  }
+
+  /* --- Scrollbar consistente com a paleta em todo o browser --- */
+  .mc-exam-app{ scrollbar-color: var(--verde-escuro) var(--creme); }
+  .mc-exam-app ::-webkit-scrollbar-thumb{ background:var(--verde-escuro); border-color:var(--creme); }
+  .mc-exam-app ::-webkit-scrollbar-thumb:hover{ background:var(--verde); }
+
 </style>
 </head>
 <body>
@@ -1099,7 +1256,6 @@
     <div class="cabecalho-universidade">
       <div id="uni-emblema" class="emblema"></div>
       <div class="cabecalho-universidade-texto">
-        <div class="eyebrow">Disciplinas disponíveis</div>
         <h2 id="uni-nome"></h2>
       </div>
     </div>
@@ -1295,7 +1451,7 @@ function mcAbrirModalPagamento(indice){
   area.innerHTML = `
     <div class="modal-fundo" id="modal-fundo">
       <div class="modal mc-modal-pagamento">
-        <h3>🔒 Acesso Completo</h3>
+        <h3 style="display:flex; align-items:center; gap:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px; height:20px; flex-shrink:0;" aria-hidden="true"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Acesso Completo</h3>
         <p style="margin-bottom:4px;"><strong>${escapeHtml(tituloExame)}</strong></p>
         <p>Este exame faz parte do conteúdo premium do simulador. Com um único pagamento de <strong>${MC_PRECO_DESBLOQUEIO} MT</strong> desbloqueias <strong>todos os exames de todas as universidades e disciplinas</strong> — apenas neste dispositivo.</p>
         <div class="mc-instrucoes-pagamento">
@@ -1377,6 +1533,8 @@ function mostrarTela(id){
     document.getElementById(t).classList.toggle("hidden", t !== id);
   });
   document.getElementById("cronometro-topo").classList.toggle("hidden", id !== "tela-exame");
+  const topoFixavel = document.querySelector(".mc-exam-app .topo");
+  if(topoFixavel){ topoFixavel.classList.toggle("fixo-exame", id === "tela-exame"); }
   const telaActiva = document.getElementById(id);
   telaActiva.classList.remove("mc-anim");
   void telaActiva.offsetWidth;
@@ -1600,17 +1758,12 @@ function renderHome(){
     return;
   }
   lista.innerHTML = UNIVERSIDADES.map((u, i) => {
-    const numDisciplinasComExame = u.disciplinas.filter(d => d.exames.length > 0).length;
     return `
     <div class="cartao-universidade" style="--atraso:${Math.min(i,8)*20}ms" onclick="interagirCartao(event, () => abrirUniversidade(${i}))">
       <div class="emblema" style="${estiloEmblema(u.sigla || iniciais(u.nome), 13)}">${u.sigla || iniciais(u.nome)}</div>
       <div class="info">
         <h3>${u.nome}</h3>
-        <div class="meta">
-          <span>📚 ${numDisciplinasComExame} disciplina${numDisciplinasComExame === 1 ? '' : 's'} com exames · ${totalExamesUniversidade(u)} exame${totalExamesUniversidade(u) === 1 ? '' : 's'}</span>
-        </div>
       </div>
-      <div class="seta">→</div>
     </div>
   `;}).join("");
 }
@@ -1667,7 +1820,6 @@ function renderDisciplinasLista(){
       <div class="icone" aria-hidden="true">${iconeDisciplina(d)}</div>
       <div class="info">
         <h3>${d.nome}</h3>
-        <div class="meta">${temExames ? `${d.exames.length} exame${d.exames.length === 1 ? '' : 's'} disponível${d.exames.length === 1 ? '' : 'is'}` : 'Ainda sem exames'}</div>
       </div>
     </div>
   `;}).join("");
@@ -1710,11 +1862,8 @@ function renderExamesDaDisciplina(){
         <h3>${ex.disciplina}${ex.variante ? ' — ' + ex.variante : ''}</h3>
         <div class="meta">
           <span>📅 ${ex.ano}</span>
-          ${ex.ano === anoMaisRecente ? `<span class="mc-badge-recente">Mais recente</span>` : ``}
-          ${bloqueado ? `` : `<span class="mc-badge-gratis">Grátis</span>`}
         </div>
       </div>
-      <div class="seta">→</div>
     </div>
   `;
   }).join("");
