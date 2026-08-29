@@ -170,8 +170,76 @@
     padding-left:calc(16px + env(safe-area-inset-left, 0px));
     padding-right:calc(16px + env(safe-area-inset-right, 0px));
     display:flex; align-items:center; justify-content:center;
+    position:relative;
   }
-  .mc-exam-app .topo .marca{display:flex; align-items:center; justify-content:flex-start; gap:10px; width:100%;}
+  .mc-exam-app .topo .marca{display:flex; align-items:center; justify-content:flex-start; gap:10px; flex:1 1 auto; min-width:0;}
+
+  .mc-exam-app .menu-hamburguer-btn{
+    flex:0 0 auto;
+    width:40px; height:40px;
+    margin-left:8px;
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    background:#fff;
+    border:1px solid var(--linha);
+    border-radius:var(--raio-md);
+    box-shadow:var(--sombra-sm);
+    cursor:pointer;
+    padding:0;
+    -webkit-tap-highlight-color:transparent;
+    transition:border-color var(--dur-r) var(--ease-suave), box-shadow var(--dur-r) var(--ease-suave), transform var(--dur-r) var(--ease-suave), background var(--dur-r) var(--ease-suave);
+  }
+  .mc-exam-app .menu-hamburguer-btn:hover{ border-color:var(--dourado-escuro); box-shadow:var(--sombra-md); }
+  .mc-exam-app .menu-hamburguer-btn:active{ transform:scale(0.94); }
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"]{ border-color:var(--dourado-escuro); background:var(--primary-light); }
+  .mc-exam-app .menu-hamburguer-btn .mc-hb-barra{
+    display:block; width:18px; height:2px; border-radius:2px;
+    background:var(--verde-escuro);
+    position:absolute; left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    transition:transform var(--dur-m) var(--ease-suave), opacity var(--dur-r) var(--ease-suave), background var(--dur-r) var(--ease-suave);
+  }
+  .mc-exam-app .menu-hamburguer-btn .mc-hb-barra:nth-child(1){ transform:translate(-50%, calc(-50% - 6px)); }
+  .mc-exam-app .menu-hamburguer-btn .mc-hb-barra:nth-child(3){ transform:translate(-50%, calc(-50% + 6px)); }
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] .mc-hb-barra{ background:var(--dourado-escuro); }
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] .mc-hb-barra:nth-child(1){ transform:translate(-50%,-50%) rotate(45deg); }
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] .mc-hb-barra:nth-child(2){ opacity:0; }
+  .mc-exam-app .menu-hamburguer-btn[aria-expanded="true"] .mc-hb-barra:nth-child(3){ transform:translate(-50%,-50%) rotate(-45deg); }
+
+  .mc-exam-app .menu-hamburguer-painel{
+    position:absolute;
+    top:100%;
+    right:calc(16px + env(safe-area-inset-right, 0px));
+    margin-top:8px;
+    min-width:208px;
+    background:#fff;
+    border:1px solid var(--linha);
+    border-radius:var(--raio-lg);
+    box-shadow:var(--sombra-lg);
+    padding:6px;
+    z-index:70;
+    opacity:0; visibility:hidden;
+    transform:translateY(-6px) scale(0.98);
+    transform-origin:top right;
+    transition:opacity var(--dur-m) var(--ease-suave), transform var(--dur-m) var(--ease-suave), visibility var(--dur-m) linear;
+  }
+  .mc-exam-app .menu-hamburguer-painel.aberto{
+    opacity:1; visibility:visible; transform:translateY(0) scale(1);
+  }
+  .mc-exam-app .menu-hamburguer-painel .mc-hb-item{
+    display:flex; align-items:center; gap:10px;
+    width:100%; box-sizing:border-box; text-align:left;
+    padding:10px 12px; border-radius:calc(var(--raio-md) - 2px);
+    font-family:var(--fonte-app) !important; font-size:var(--tp-sm); font-weight:600;
+    color:var(--carvao); text-decoration:none;
+    background:none; border:none; cursor:pointer;
+    transition:background var(--dur-r) var(--ease-suave), color var(--dur-r) var(--ease-suave);
+  }
+  .mc-exam-app .menu-hamburguer-painel .mc-hb-item:hover,
+  .mc-exam-app .menu-hamburguer-painel .mc-hb-item:focus-visible{
+    background:var(--primary-light); color:var(--verde-escuro);
+  }
+  .mc-exam-app .menu-hamburguer-painel .mc-hb-item svg{ width:18px; height:18px; flex-shrink:0; color:var(--dourado-escuro); }
   .mc-exam-app .topo .marca-logo{
     height:130px; width:auto; max-width:100%; display:block; flex-shrink:0;
     margin-left:0;
@@ -1246,6 +1314,33 @@
 <path d="M 957,817 L 913,816 L 913,821 L 911,823 L 908,833 L 909,836 L 907,837 L 908,839 L 906,841 L 886,912 L 886,918 L 928,919 L 936,893 L 935,891 L 937,889 L 954,829 L 954,823 L 956,822 L 955,819 Z M 889,826 L 881,820 L 868,814 L 859,812 L 835,812 L 816,817 L 797,828 L 784,842 L 779,854 L 777,855 L 778,857 L 776,858 L 774,866 L 774,887 L 781,902 L 790,911 L 803,918 L 822,922 L 846,920 L 856,917 L 870,910 L 880,902 L 882,898 L 863,879 L 859,877 L 853,883 L 842,888 L 827,888 L 818,880 L 816,876 L 816,866 L 821,856 L 828,849 L 836,845 L 845,843 L 847,845 L 853,846 L 860,852 L 862,856 L 864,856 L 897,841 L 894,833 Z M 762,827 L 756,821 L 749,817 L 736,813 L 726,813 L 721,811 L 693,813 L 676,818 L 656,829 L 656,832 L 661,837 L 661,839 L 670,851 L 688,842 L 709,838 L 712,840 L 715,839 L 716,841 L 721,843 L 726,852 L 723,856 L 691,855 L 677,857 L 662,861 L 652,866 L 641,876 L 636,887 L 635,896 L 639,909 L 646,916 L 652,919 L 667,922 L 691,919 L 701,915 L 710,908 L 712,909 L 710,915 L 711,919 L 749,919 L 751,917 L 751,913 L 755,903 L 755,897 L 757,896 L 768,851 L 767,838 Z M 719,876 L 717,884 L 712,891 L 704,895 L 703,897 L 701,896 L 696,898 L 687,898 L 682,896 L 678,891 L 680,883 L 688,877 L 717,874 Z M 671,776 L 551,776 L 548,781 L 544,795 L 545,797 L 543,799 L 532,836 L 533,838 L 530,843 L 531,845 L 529,846 L 528,853 L 517,887 L 517,893 L 515,895 L 509,915 L 509,919 L 554,919 L 565,882 L 565,876 L 567,875 L 566,873 L 571,869 L 632,870 L 634,865 L 633,863 L 635,862 L 642,837 L 580,837 L 579,831 L 584,815 L 586,812 L 660,812 L 670,780 L 669,778 Z M 1032,773 L 988,773 L 987,781 L 985,783 L 981,797 L 982,799 L 980,800 L 981,803 L 978,807 L 979,809 L 977,811 L 949,911 L 949,917 L 947,919 L 991,918 L 1031,778 L 1030,776 L 1032,775 Z M 700,803 L 737,803 L 755,789 L 757,789 L 774,777 L 776,774 L 731,773 Z M 960,771 L 953,768 L 938,768 L 928,772 L 922,778 L 919,784 L 918,795 L 920,800 L 925,805 L 934,808 L 946,807 L 954,804 L 962,797 L 965,792 L 964,790 L 966,789 L 966,780 L 964,775 Z" fill="#1A1A1A" fill-rule="evenodd"/>
 </svg>
     </div>
+    <button type="button" id="menuHamburguerBtn" class="menu-hamburguer-btn" aria-haspopup="true" aria-expanded="false" aria-controls="menuHamburguerPainel" aria-label="Abrir menu">
+      <span class="mc-hb-barra" aria-hidden="true"></span>
+      <span class="mc-hb-barra" aria-hidden="true"></span>
+      <span class="mc-hb-barra" aria-hidden="true"></span>
+    </button>
+    <div id="menuHamburguerPainel" class="menu-hamburguer-painel" role="menu" aria-label="Menu principal">
+      <button type="button" class="mc-hb-item" role="menuitem" onclick="mostrarTela('tela-inicio'); document.getElementById('menuHamburguerBtn').setAttribute('aria-expanded','false'); document.getElementById('menuHamburguerPainel').classList.remove('aberto');">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+        <span>Início</span>
+      </button>
+      <a href="https://mozcarreiras.blogspot.com/p/sobre-nos.html" target="_top" class="mc-hb-item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Sobre Nós</span>
+      </a>
+      <a href="https://mozcarreiras.blogspot.com/p/contactos-moz-carreiras-root-cp.html?m=1" target="_top" class="mc-hb-item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>
+        <span>Contactos</span>
+      </a>
+      <a href="https://mozcarreiras.blogspot.com/p/bolsas-de-estudo.html?m=1" target="_top" class="mc-hb-item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.657 2.686 3 6 3s6-1.343 6-3v-5"/><path d="M22 10v6"/></svg>
+        <span>Bolsas de Estudo</span>
+      </a>
+      <a href="https://mozcarreiras.blogspot.com/" target="_top" class="mc-hb-item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
+        <span>Vagas de emprego</span>
+      </a>
+    </div>
   </div>
 </div>
 
@@ -1547,6 +1642,16 @@ function mostrarTelaInterna(id){
     document.getElementById(t).classList.toggle("hidden", t !== id);
   });
   document.getElementById("cronometro-topo").classList.toggle("hidden", id !== "tela-exame");
+  const emExame = (id === "tela-exame");
+  const btnHamburguer = document.getElementById("menuHamburguerBtn");
+  const painelHamburguer = document.getElementById("menuHamburguerPainel");
+  if(btnHamburguer){
+    btnHamburguer.classList.toggle("hidden", emExame);
+    if(emExame){
+      btnHamburguer.setAttribute("aria-expanded","false");
+      if(painelHamburguer){ painelHamburguer.classList.remove("aberto"); }
+    }
+  }
   const topoFixavel = document.querySelector(".mc-exam-app .topo");
   if(topoFixavel){ topoFixavel.classList.toggle("fixo-exame", id === "tela-exame"); }
   const telaActiva = document.getElementById(id);
