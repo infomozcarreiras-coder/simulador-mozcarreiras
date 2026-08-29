@@ -2977,8 +2977,7 @@ renderHome();
     function tentarValidar(){
       const valor = (inputEl.value || "").trim();
       if(valor.length === 4 && mcSomaVerificacao(valor) === MC_ESTAT_REF){
-        fecharModal();
-        setTimeout(abrirCardEstatisticas, 160);
+        abrirCardEstatisticas();
       } else {
         erroEl.style.display = "block";
         inputEl.focus();
