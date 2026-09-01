@@ -2208,16 +2208,57 @@ function renderDisciplinasLista(){
     lista.innerHTML = `<div class="estado-vazio">Ainda não há disciplinas disponíveis para esta universidade.</div>`;
     return;
   }
-  lista.innerHTML = universidadeAtual.disciplinas.map((d, i) => {
+  // Ordena para que as disciplinas com exames disponíveis apareçam primeiro,
+  // ficando as que ainda não têm exame no fundo da lista.
+  const disciplinasOrdenadas = universidadeAtual.disciplinas
+    .map((d, indiceOriginal) => ({ d, indiceOriginal }))
+    .sort((a, b) => {
+      const aTemExames = a.d.exames.length > 0;
+      const bTemExames = b.d.exames.length > 0;
+      if(aTemExames !== bTemExames) return aTemExames ? -1 : 1;
+      return 0;
+    });
+  lista.innerHTML = disciplinasOrdenadas.map(({ d, indiceOriginal: i }, posicao) => {
     const temExames = d.exames.length > 0;
+    const accaoClique = temExames
+      ? `interagirCartao(event, () => abrirDisciplina(${i}))`
+      : `interagirCartao(event, () => mostrarEmBreveDisciplina(universidadeAtual.disciplinas[${i}]))`;
     return `
-    <div class="cartao-disciplina ${temExames ? 'tem-exames' : 'vazia'}" style="--atraso:${Math.min(i,8)*20}ms" onclick="${temExames ? `interagirCartao(event, () => abrirDisciplina(${i}))` : ''}">
+    <div class="cartao-disciplina ${temExames ? 'tem-exames' : 'vazia'}" style="--atraso:${Math.min(posicao,8)*20}ms" onclick="${accaoClique}">
       <div class="icone" aria-hidden="true">${iconeDisciplina(d)}</div>
       <div class="info">
         <h3>${d.nome}</h3>
       </div>
     </div>
   `;}).join("");
+}
+
+function mostrarEmBreveDisciplina(disciplina){
+  const nomeDisciplina = (disciplina.nome || "").toString();
+  const area = document.getElementById("area-modal");
+  area.innerHTML = `
+    <div class="modal-fundo" id="modal-fundo">
+      <div class="modal mc-modal-em-breve">
+        <div class="mc-em-breve-icone" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>
+        </div>
+        <h3>Em Breve</h3>
+        <p>Ainda não há exames disponíveis para <strong>${nomeDisciplina}</strong>.</p>
+        <p>Estamos a trabalhar para disponibilizar o melhor conteúdo para ti!</p>
+        <div class="acoes" id="modal-acoes"></div>
+      </div>
+    </div>
+  `;
+  const fundoModal = document.getElementById("modal-fundo");
+  fundoModal.classList.add("mc-fundo-centrado");
+  const acoesEl = document.getElementById("modal-acoes");
+  const btn = document.createElement("button");
+  btn.className = "btn dourado";
+  btn.textContent = "Entendido";
+  btn.onclick = fecharModal;
+  acoesEl.appendChild(btn);
+  irParaTopo();
+  requestAnimationFrame(irParaTopo);
 }
 
 function abrirDisciplina(indice){
